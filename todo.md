@@ -55,3 +55,25 @@
 - [ ] User submissions/applications
 - [ ] Admin panel for opportunity management
 - [ ] Analytics and tracking
+
+
+## Backend API (tRPC)
+- [x] Create tRPC procedure to list all opportunities
+- [x] Create tRPC procedure to filter opportunities by category
+- [x] Create tRPC procedure to search opportunities by keyword
+- [x] Add database query helpers in server/db.ts
+- [x] Test tRPC procedures
+
+## Search Functionality
+- [x] Create search screen component
+- [x] Implement search input with debouncing
+- [x] Add search results display
+- [x] Integrate search with tRPC backend
+- [x] Add recent searches tracking
+- [x] Test search functionality
+
+## Home Screen Integration
+- [x] Replace mock data with tRPC queries
+- [x] Add loading states
+- [x] Add error handling
+- [x] Test home screen with real data

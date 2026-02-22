@@ -2,6 +2,7 @@ import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator }
 import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
+import { useRouter } from "expo-router";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -19,185 +20,82 @@ interface Opportunity {
   title: string;
   description: string;
   category: string;
-  externalLink?: string;
+  externalLink: string | null;
   level: string;
   type: string;
   duration: string;
-  deadline?: Date;
+  deadline: Date | null;
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch opportunities from database
-  const fetchOpportunities = async () => {
-    setLoading(true);
-    try {
-      // For now, we'll use mock data since we need to set up the tRPC router
-      // In a real implementation, this would call: const data = await trpc.opportunities.list.useQuery();
-      const mockData: Opportunity[] = [
-        {
-          id: 1,
-          title: "Waterloo Food Bank - Youth Volunteer Program",
-          description: "Help sort, pack, and distribute food to families in need.",
-          category: "volunteering",
-          level: "both",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.waterloofoodbank.ca/volunteer",
-        },
-        {
-          id: 2,
-          title: "Waterloo Public Library - Teen Volunteer",
-          description: "Assist with shelving books and helping patrons.",
-          category: "volunteering",
-          level: "both",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.waterloopubliclibrary.ca/volunteer",
-        },
-        {
-          id: 3,
-          title: "Kitchener-Waterloo Humane Society - Animal Care Volunteer",
-          description: "Care for animals and assist with adoption events.",
-          category: "volunteering",
-          level: "both",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.kwhumanesociety.ca/volunteer",
-        },
-        {
-          id: 4,
-          title: "Waterloo Region Habitat for Humanity - Youth Build",
-          description: "Join hands-on construction projects for affordable housing.",
-          category: "volunteering",
-          level: "high_school",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.habitatwaterloo.ca/volunteer",
-        },
-        {
-          id: 5,
-          title: "Waterloo Community Tutoring - Student Tutor",
-          description: "Tutor younger students in various subjects.",
-          category: "volunteering",
-          level: "both",
-          type: "hybrid",
-          duration: "long",
-          externalLink: "https://www.waterloocommunity.ca/tutoring",
-        },
-        {
-          id: 6,
-          title: "Waterloo Region Youth Mentorship Program",
-          description: "Become a mentor to younger students.",
-          category: "volunteering",
-          level: "high_school",
-          type: "hybrid",
-          duration: "long",
-          externalLink: "https://www.waterlooyouthmentorship.ca/volunteer",
-        },
-        {
-          id: 7,
-          title: "Waterloo Environmental Action - Trail Maintenance",
-          description: "Help maintain local hiking trails and green spaces.",
-          category: "volunteering",
-          level: "both",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.waterlooenvironmental.ca/volunteer",
-        },
-        {
-          id: 8,
-          title: "Waterloo Community Health Centre - Volunteer",
-          description: "Support healthcare workers in patient care.",
-          category: "volunteering",
-          level: "high_school",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.waterloohealthcentre.ca/volunteer",
-        },
-        {
-          id: 9,
-          title: "Waterloo Seniors' Support Program - Teen Volunteer",
-          description: "Visit and support seniors in the community.",
-          category: "volunteering",
-          level: "both",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.waterlooseniorsupport.ca/volunteer",
-        },
-        {
-          id: 10,
-          title: "Waterloo Youth Crisis Line - Peer Support Volunteer",
-          description: "Provide peer support to youth in crisis.",
-          category: "volunteering",
-          level: "high_school",
-          type: "online",
-          duration: "long",
-          externalLink: "https://www.waterlooyouthcrisis.ca/volunteer",
-        },
-        {
-          id: 11,
-          title: "Waterloo Community Garden - Garden Volunteer",
-          description: "Help maintain community gardens.",
-          category: "volunteering",
-          level: "both",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.waterloocommunitygardens.ca/volunteer",
-        },
-        {
-          id: 12,
-          title: "Waterloo Sports for All - Volunteer Coach",
-          description: "Coach youth sports teams.",
-          category: "volunteering",
-          level: "high_school",
-          type: "in_person",
-          duration: "long",
-          externalLink: "https://www.waterloosportsforall.ca/volunteer",
-        },
-      ];
-      setOpportunities(mockData);
-    } catch (error) {
-      console.error("Error fetching opportunities:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch all opportunities
+  const { data: allOpps, isLoading: allOppsLoading } = trpc.opportunities.list.useQuery();
+
+  // Fetch opportunities by category
+  const { data: categoryOpps, isLoading: categoryOppsLoading } = trpc.opportunities.byCategory.useQuery(
+    { category: selectedCategory },
+    { enabled: selectedCategory !== "all" && selectedCategory !== "closing_soon" }
+  );
 
   useEffect(() => {
-    fetchOpportunities();
-  }, []);
+    setLoading(allOppsLoading || categoryOppsLoading);
+  }, [allOppsLoading, categoryOppsLoading]);
 
-  // Filter opportunities based on selected category
-  const filteredOpportunities =
-    selectedCategory === "all"
-      ? opportunities
-      : opportunities.filter((opp) => opp.category === selectedCategory);
+  useEffect(() => {
+    if (selectedCategory === "all" && allOpps) {
+      setOpportunities(allOpps);
+    } else if (selectedCategory === "closing_soon" && allOpps) {
+      // Filter opportunities closing soon (within 30 days)
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      const closingSoon = allOpps.filter((opp) => {
+        if (!opp.deadline) return false;
+        const deadline = new Date(opp.deadline);
+        return deadline <= thirtyDaysFromNow && deadline > new Date();
+      });
+      setOpportunities(closingSoon);
+    } else if (categoryOpps) {
+      setOpportunities(categoryOpps);
+    }
+  }, [selectedCategory, allOpps, categoryOpps]);
 
   const renderOpportunityCard = ({ item }: { item: Opportunity }) => (
-    <View className="bg-surface rounded-lg p-4 mb-3 border border-border">
-      <Text className="text-lg font-semibold text-foreground mb-2">{item.title}</Text>
-      <Text className="text-sm text-muted mb-3 leading-relaxed">{item.description}</Text>
-      <View className="flex-row gap-2 mb-3 flex-wrap">
-        <View className="bg-primary/10 px-3 py-1 rounded-full">
-          <Text className="text-xs font-medium text-primary">{item.level}</Text>
+    <TouchableOpacity
+      onPress={() => {
+        // Navigate to opportunity detail screen or open external link
+        if (item.externalLink) {
+          // For now, just show the card. In future, open external link
+        }
+      }}
+      activeOpacity={0.7}
+    >
+      <View className="bg-surface rounded-lg p-4 mb-3 border border-border">
+        <Text className="text-lg font-semibold text-foreground mb-2">{item.title}</Text>
+        <Text className="text-sm text-muted mb-3 leading-relaxed" numberOfLines={2}>
+          {item.description}
+        </Text>
+        <View className="flex-row gap-2 mb-3 flex-wrap">
+          <View className="bg-primary/10 px-3 py-1 rounded-full">
+            <Text className="text-xs font-medium text-primary">{item.level}</Text>
+          </View>
+          <View className="bg-primary/10 px-3 py-1 rounded-full">
+            <Text className="text-xs font-medium text-primary">{item.type}</Text>
+          </View>
+          <View className="bg-primary/10 px-3 py-1 rounded-full">
+            <Text className="text-xs font-medium text-primary">{item.duration}</Text>
+          </View>
         </View>
-        <View className="bg-primary/10 px-3 py-1 rounded-full">
-          <Text className="text-xs font-medium text-primary">{item.type}</Text>
-        </View>
-        <View className="bg-primary/10 px-3 py-1 rounded-full">
-          <Text className="text-xs font-medium text-primary">{item.duration}</Text>
-        </View>
-      </View>
-      {item.externalLink && (
         <TouchableOpacity className="bg-primary px-4 py-2 rounded-lg">
           <Text className="text-white font-semibold text-center">Learn More</Text>
         </TouchableOpacity>
-      )}
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -247,13 +145,21 @@ export default function HomeScreen() {
             <Text className="text-lg font-semibold text-foreground">
               {selectedCategory === "all"
                 ? "All Opportunities"
+                : selectedCategory === "closing_soon"
+                ? "Closing Soon"
                 : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Opportunities`}
             </Text>
             {loading ? (
-              <ActivityIndicator size="large" color="#0a7ea4" />
-            ) : filteredOpportunities.length > 0 ? (
+              <View className="items-center justify-center py-8">
+                <ActivityIndicator size="large" color="#0a7ea4" />
+              </View>
+            ) : error ? (
+              <View className="items-center justify-center py-8">
+                <Text className="text-error text-center">{error}</Text>
+              </View>
+            ) : opportunities.length > 0 ? (
               <FlatList
-                data={filteredOpportunities}
+                data={opportunities}
                 renderItem={renderOpportunityCard}
                 keyExtractor={(item) => item.id.toString()}
                 scrollEnabled={false}

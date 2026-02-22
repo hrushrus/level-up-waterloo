@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, opportunities, Opportunity } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,94 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Opportunities queries
+export async function getAllOpportunities(): Promise<Opportunity[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get opportunities: database not available");
+    return [];
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(opportunities)
+      .where(eq(opportunities.isApproved, true))
+      .orderBy(opportunities.createdAt);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to get opportunities:", error);
+    return [];
+  }
+}
+
+export async function getOpportunitiesByCategory(category: string): Promise<Opportunity[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get opportunities: database not available");
+    return [];
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(opportunities)
+      .where(
+        or(
+          eq(opportunities.category, category as any),
+          eq(opportunities.isApproved, false)
+        )
+      )
+      .orderBy(opportunities.createdAt);
+    return result.filter((opp) => opp.isApproved && opp.category === category);
+  } catch (error) {
+    console.error("[Database] Failed to get opportunities by category:", error);
+    return [];
+  }
+}
+
+export async function searchOpportunities(query: string): Promise<Opportunity[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot search opportunities: database not available");
+    return [];
+  }
+
+  try {
+    const searchPattern = `%${query}%`;
+    const result = await db
+      .select()
+      .from(opportunities)
+      .where(
+        or(
+          like(opportunities.title, searchPattern),
+          like(opportunities.description, searchPattern)
+        )
+      )
+      .orderBy(opportunities.createdAt);
+    return result.filter((opp) => opp.isApproved);
+  } catch (error) {
+    console.error("[Database] Failed to search opportunities:", error);
+    return [];
+  }
+}
+
+export async function getOpportunityById(id: number): Promise<Opportunity | undefined> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get opportunity: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(opportunities)
+      .where(eq(opportunities.id, id))
+      .limit(1);
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get opportunity:", error);
+    return undefined;
+  }
+}
