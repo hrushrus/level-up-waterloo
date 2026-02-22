@@ -77,3 +77,30 @@
 - [x] Add loading states
 - [x] Add error handling
 - [x] Test home screen with real data
+
+
+## Opportunity Detail Screen
+- [x] Create detail screen component
+- [x] Display full opportunity information
+- [x] Show deadline countdown
+- [x] Add "Learn More" button with external link
+- [x] Add share button
+- [x] Test detail screen
+
+## Save/Bookmark Feature
+- [x] Create bookmark context/state management
+- [x] Add heart icon to opportunity cards
+- [x] Implement save to AsyncStorage
+- [x] Create Saved tab screen
+- [x] Display saved opportunities
+- [x] Add remove from saved functionality
+- [x] Test bookmark feature
+
+## Advanced Filtering & Sorting
+- [x] Add filter panel to home screen
+- [x] Implement level filter (both, middle_school, high_school)
+- [x] Implement type filter (in_person, online, hybrid)
+- [x] Implement duration filter (short, medium, long)
+- [x] Add sorting options (newest, deadline, alphabetical)
+- [x] Update home screen to use filters
+- [x] Test filtering and sorting

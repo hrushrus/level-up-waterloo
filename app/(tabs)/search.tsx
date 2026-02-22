@@ -10,7 +10,12 @@ import {
 import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
+import { useRouter } from "expo-router";
+import { useBookmarks } from "@/lib/bookmark-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const RECENT_SEARCHES_KEY = "levelup_recent_searches";
+const MAX_RECENT_SEARCHES = 5;
 
 interface Opportunity {
   id: number;
@@ -24,10 +29,9 @@ interface Opportunity {
   deadline: Date | null;
 }
 
-const RECENT_SEARCHES_KEY = "levelup_recent_searches";
-const MAX_RECENT_SEARCHES = 5;
-
 export default function SearchScreen() {
+  const router = useRouter();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [showRecent, setShowRecent] = useState(true);
@@ -98,28 +102,44 @@ export default function SearchScreen() {
     return searchResults || [];
   }, [searchQuery, searchResults]);
 
-  const renderOpportunityCard = ({ item }: { item: Opportunity }) => (
-    <View className="bg-surface rounded-lg p-4 mb-3 border border-border">
-      <Text className="text-lg font-semibold text-foreground mb-2">{item.title}</Text>
-      <Text className="text-sm text-muted mb-3 leading-relaxed" numberOfLines={2}>
-        {item.description}
-      </Text>
-      <View className="flex-row gap-2 mb-3 flex-wrap">
-        <View className="bg-primary/10 px-3 py-1 rounded-full">
-          <Text className="text-xs font-medium text-primary">{item.level}</Text>
+  const renderOpportunityCard = ({ item }: { item: Opportunity }) => {
+    const isBookmarkedState = isBookmarked(item.id);
+    return (
+      <TouchableOpacity
+        onPress={() => router.push(`/opportunity/${item.id}`)}
+        activeOpacity={0.7}
+      >
+        <View className="bg-surface rounded-lg p-4 mb-3 border border-border">
+          <View className="flex-row justify-between items-start mb-2">
+            <Text className="text-lg font-semibold text-foreground flex-1">{item.title}</Text>
+            <TouchableOpacity
+              onPress={() => toggleBookmark(item.id)}
+              className="ml-2"
+            >
+              <Text className="text-xl">{isBookmarkedState ? "❤️" : "🤍"}</Text>
+            </TouchableOpacity>
+          </View>
+          <Text className="text-sm text-muted mb-3 leading-relaxed" numberOfLines={2}>
+            {item.description}
+          </Text>
+          <View className="flex-row gap-2 mb-3 flex-wrap">
+            <View className="bg-primary/10 px-3 py-1 rounded-full">
+              <Text className="text-xs font-medium text-primary">{item.level}</Text>
+            </View>
+            <View className="bg-primary/10 px-3 py-1 rounded-full">
+              <Text className="text-xs font-medium text-primary">{item.type}</Text>
+            </View>
+            <View className="bg-primary/10 px-3 py-1 rounded-full">
+              <Text className="text-xs font-medium text-primary">{item.duration}</Text>
+            </View>
+          </View>
+          <TouchableOpacity className="bg-primary px-4 py-2 rounded-lg">
+            <Text className="text-white font-semibold text-center">View Details</Text>
+          </TouchableOpacity>
         </View>
-        <View className="bg-primary/10 px-3 py-1 rounded-full">
-          <Text className="text-xs font-medium text-primary">{item.type}</Text>
-        </View>
-        <View className="bg-primary/10 px-3 py-1 rounded-full">
-          <Text className="text-xs font-medium text-primary">{item.duration}</Text>
-        </View>
-      </View>
-      <TouchableOpacity className="bg-primary px-4 py-2 rounded-lg">
-        <Text className="text-white font-semibold text-center">Learn More</Text>
       </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <ScreenContainer className="p-4">
