@@ -9,7 +9,7 @@ React Native web app for the LevelUp Waterloo project.
 ```bash
 pnpm install
 pnpm dev
-```
+``` 
 
 App runs on `http://localhost:8081`
 
