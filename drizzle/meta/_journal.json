@@ -15,6 +15,13 @@
       "when": 1771789550460,
       "tag": "0001_ambiguous_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1774867303271,
+      "tag": "0002_tiny_the_order",
+      "breakpoints": true
     }
   ]
 }

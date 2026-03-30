@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { initExpirationScheduler } from "../schedulers/expiration-scheduler";
+import { startReminderScheduler } from "../schedulers/reminder-scheduler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -82,6 +83,9 @@ async function startServer() {
 
   // Initialize the expiration scheduler
   initExpirationScheduler();
+
+  // Initialize the reminder scheduler
+  startReminderScheduler();
 }
 
 startServer().catch(console.error);

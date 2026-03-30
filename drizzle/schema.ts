@@ -91,3 +91,30 @@ export const userInterests = mysqlTable("userInterests", {
 
 export type UserInterest = typeof userInterests.$inferSelect;
 export type InsertUserInterest = typeof userInterests.$inferInsert;
+
+// Email notifications table for tracking sent reminder emails
+export const emailNotifications = mysqlTable("emailNotifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  opportunityId: int("opportunityId").notNull(),
+  type: mysqlEnum("type", ["deadline_reminder"]).default("deadline_reminder").notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "failed"]).default("pending").notNull(),
+  sentAt: timestamp("sentAt"),
+  error: text("error"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type EmailNotification = typeof emailNotifications.$inferSelect;
+export type InsertEmailNotification = typeof emailNotifications.$inferInsert;
+
+// Bookmarks table for tracking user bookmarked opportunities
+export const bookmarks = mysqlTable("bookmarks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  opportunityId: int("opportunityId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type InsertBookmark = typeof bookmarks.$inferInsert;

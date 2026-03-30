@@ -132,3 +132,13 @@
 - [x] Redirect unauthenticated users
 - [x] Display user info in admin dashboard
 - [x] Only enable queries for admin users
+
+
+## Deadline Reminder Emails
+- [x] Create email notification tracking table
+- [x] Design email template for deadline reminders
+- [x] Create email service for sending notifications
+- [x] Build scheduler to find expiring bookmarked opportunities
+- [x] Implement email sending logic
+- [x] Add tests for email notification system
+- [x] Document email setup and configuration
