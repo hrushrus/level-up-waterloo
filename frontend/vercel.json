@@ -4,6 +4,6 @@
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install",
   "env": {
-    "VITE_API_URL": "@vite_api_url"
+    "EXPO_PUBLIC_API_BASE_URL": "@expo_public_api_base_url"
   }
 }
