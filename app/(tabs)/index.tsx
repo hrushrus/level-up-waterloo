@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator, Image } from "react-native";
 import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
@@ -175,12 +175,19 @@ export default function HomeScreen() {
     <ScreenContainer className="p-4">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         <View className="gap-4">
-          {/* Header */}
-          <View className="gap-2">
-            <Text className="text-3xl font-bold text-foreground">LevelUp Waterloo</Text>
-            <Text className="text-base text-muted">
-              Discover opportunities for students in the Waterloo region
-            </Text>
+          {/* Header with Logo */}
+          <View className="gap-3 items-center mb-2">
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 80, height: 80 }}
+              resizeMode="contain"
+            />
+            <View className="gap-2 items-center">
+              <Text className="text-3xl font-bold text-foreground">LevelUp Waterloo</Text>
+              <Text className="text-base text-muted text-center">
+                Discover opportunities for students in the Waterloo region
+              </Text>
+            </View>
           </View>
 
           {/* Category Filter */}
