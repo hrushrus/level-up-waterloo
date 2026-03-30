@@ -3,5 +3,5 @@
  * Import shared types from this single entry point.
  */
 
-export type * from "../drizzle/schema";
-export * from "./_core/errors";
+// Types are imported from backend API
+// Frontend uses tRPC client types instead of direct schema imports
