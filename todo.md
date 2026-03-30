@@ -160,3 +160,11 @@
 - [x] Create bookmarks/saved opportunities tab
 - [x] Add bookmark count display
 - [x] Test search and bookmark functionality
+
+
+## Opportunity Sharing
+- [x] Create opportunity detail screen
+- [x] Add share button to opportunity cards and detail screen
+- [x] Implement native sharing with Expo Sharing API
+- [x] Add deep link support for shared opportunities
+- [x] Test sharing on iOS and Android
