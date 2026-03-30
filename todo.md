@@ -151,3 +151,12 @@
 - [x] Add validation for imported data
 - [x] Document import procedures
 - [x] Test import with sample data
+
+
+## Search and Bookmarking Features
+- [x] Add search bar to home screen
+- [x] Implement search filtering by title and description
+- [x] Enhance bookmark persistence with AsyncStorage
+- [x] Create bookmarks/saved opportunities tab
+- [x] Add bookmark count display
+- [x] Test search and bookmark functionality

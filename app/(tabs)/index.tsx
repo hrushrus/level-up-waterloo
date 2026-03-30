@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator, Image } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator, Image, TextInput } from "react-native";
 import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
@@ -61,6 +61,7 @@ export default function HomeScreen() {
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +97,15 @@ export default function HomeScreen() {
       filtered = categoryOpps;
     }
 
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((opp) =>
+        opp.title.toLowerCase().includes(query) ||
+        opp.description.toLowerCase().includes(query)
+      );
+    }
+
     // Apply level filter
     if (selectedLevel !== "both") {
       filtered = filtered.filter((opp) => opp.level === selectedLevel || opp.level === "both");
@@ -126,7 +136,7 @@ export default function HomeScreen() {
     }
 
     return sorted;
-  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, sortBy, allOpps, categoryOpps]);
+  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, sortBy, searchQuery, allOpps, categoryOpps]);
 
   useEffect(() => {
     setOpportunities(filteredAndSorted);
@@ -188,6 +198,23 @@ export default function HomeScreen() {
                 Discover opportunities for students in the Waterloo region
               </Text>
             </View>
+          </View>
+
+          {/* Search Bar */}
+          <View className="bg-surface rounded-lg border border-border px-4 py-3 flex-row items-center">
+            <Text className="text-muted mr-2">🔍</Text>
+            <TextInput
+              placeholder="Search opportunities..."
+              placeholderTextColor="#687076"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              className="text-foreground flex-1"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")} className="ml-2">
+                <Text className="text-muted text-lg">✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Category Filter */}
