@@ -104,3 +104,31 @@
 - [x] Add sorting options (newest, deadline, alphabetical)
 - [x] Update home screen to use filters
 - [x] Test filtering and sorting
+
+## Admin Dashboard
+- [ ] Create admin tRPC procedures (add, edit, inactivate, list all opportunities)
+- [ ] Build admin authentication/authorization
+- [ ] Create admin dashboard React components
+- [ ] Implement opportunity form (add/edit)
+- [ ] Implement opportunities list with actions
+- [ ] Add inactivate/delete functionality
+- [ ] Create admin dashboard page
+- [ ] Test admin dashboard
+- [ ] Document admin dashboard usage
+
+## Admin Dashboard (Completed)
+- [x] Create admin tRPC procedures (add, edit, inactivate, list all opportunities)
+- [x] Build admin dashboard React components
+- [x] Implement opportunity form (add/edit)
+- [x] Implement opportunities list with actions
+- [x] Add inactivate/delete functionality
+- [x] Create admin dashboard page
+- [x] Test admin dashboard
+
+## Admin Dashboard Authentication (Completed)
+- [x] Implement adminProcedure middleware for protected endpoints
+- [x] Add authentication checks to admin dashboard UI
+- [x] Show error messages for unauthorized access
+- [x] Redirect unauthenticated users
+- [x] Display user info in admin dashboard
+- [x] Only enable queries for admin users
