@@ -47,6 +47,28 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await db.getOpportunityById(input.id);
       }),
+
+    // Advanced filtering
+    filter: publicProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          categories: z.array(z.string()).optional(),
+          deadlineRange: z
+            .object({
+              min: z.number().optional(),
+              max: z.number().optional(),
+            })
+            .optional(),
+          levels: z.array(z.string()).optional(),
+          types: z.array(z.string()).optional(),
+          durations: z.array(z.string()).optional(),
+          sortBy: z.enum(["newest", "deadline", "relevance"]).optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.filterOpportunities(input);
+      }),
   }),
 
   admin: adminRouter,

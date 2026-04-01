@@ -1,4 +1,4 @@
-import { eq, like, or } from "drizzle-orm";
+import { eq, or, like, inArray, gte, lte, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, opportunities, Opportunity } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -178,5 +178,93 @@ export async function getOpportunityById(id: number): Promise<Opportunity | unde
   } catch (error) {
     console.error("[Database] Failed to get opportunity:", error);
     return undefined;
+  }
+}
+
+export interface FilterParams {
+  search?: string;
+  categories?: string[];
+  deadlineRange?: { min?: number; max?: number };
+  levels?: string[];
+  types?: string[];
+  durations?: string[];
+  sortBy?: "newest" | "deadline" | "relevance";
+}
+
+type WhereCondition = any;
+
+export async function filterOpportunities(params: FilterParams): Promise<Opportunity[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot filter opportunities: database not available");
+    return [];
+  }
+
+  try {
+    const conditions: any[] = [eq(opportunities.isApproved, true)];
+
+    // Search filter
+    if (params.search && params.search.trim()) {
+      const searchPattern = `%${params.search}%`;
+      conditions.push(
+        or(
+          like(opportunities.title, searchPattern),
+          like(opportunities.description, searchPattern)
+        )
+      );
+    }
+
+    // Category filter
+    if (params.categories && params.categories.length > 0) {
+      conditions.push(inArray(opportunities.category, params.categories as any));
+    }
+
+    // Level filter
+    if (params.levels && params.levels.length > 0) {
+      conditions.push(inArray(opportunities.level, params.levels as any));
+    }
+
+    // Type filter
+    if (params.types && params.types.length > 0) {
+      conditions.push(inArray(opportunities.type, params.types as any));
+    }
+
+    // Duration filter
+    if (params.durations && params.durations.length > 0) {
+      conditions.push(inArray(opportunities.duration, params.durations as any));
+    }
+
+    // Deadline range filter
+    if (params.deadlineRange) {
+      const now = new Date();
+      if (params.deadlineRange.min !== undefined) {
+        const minDate = new Date(now.getTime() + params.deadlineRange.min * 24 * 60 * 60 * 1000);
+        conditions.push(gte(opportunities.deadline, minDate));
+      }
+      if (params.deadlineRange.max !== undefined) {
+        const maxDate = new Date(now.getTime() + params.deadlineRange.max * 24 * 60 * 60 * 1000);
+        conditions.push(lte(opportunities.deadline, maxDate));
+      }
+    }
+
+    // Build query with all conditions
+    let whereCondition = conditions[0];
+    if (conditions.length > 1) {
+      whereCondition = and(...conditions);
+    }
+
+    // Execute query with sorting
+    const result = await db
+      .select()
+      .from(opportunities)
+      .where(whereCondition)
+      .orderBy(
+        params.sortBy === "deadline" ? opportunities.deadline : desc(opportunities.createdAt)
+      );
+
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to filter opportunities:", error);
+    return [];
   }
 }

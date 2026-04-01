@@ -168,3 +168,12 @@
 - [x] Implement native sharing with Expo Sharing API
 - [x] Add deep link support for shared opportunities
 - [x] Test sharing on iOS and Android
+
+
+## Advanced Filtering & Search
+- [ ] Create filter context and state management
+- [ ] Build filter UI components (deadline, commitment, location, pay, level)
+- [ ] Implement filter logic in API
+- [ ] Add saved filter presets
+- [ ] Create filter UI on home screen
+- [ ] Test filtering functionality
