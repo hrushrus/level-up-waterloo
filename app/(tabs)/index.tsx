@@ -247,6 +247,45 @@ export default function HomeScreen() {
             </ScrollView>
           </View>
 
+          {/* Active Filters Display */}
+          {(selectedLevel !== "both" || selectedType !== null || selectedDuration !== null) && (
+            <View className="gap-2">
+              <View className="flex-row flex-wrap gap-2 items-center">
+                {selectedLevel !== "both" && (
+                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
+                    <Text className="text-xs font-medium text-primary">
+                      {LEVELS.find((l) => l.id === selectedLevel)?.label}
+                    </Text>
+                  </View>
+                )}
+                {selectedType !== null && (
+                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
+                    <Text className="text-xs font-medium text-primary">
+                      {TYPES.find((t) => t.id === selectedType)?.label}
+                    </Text>
+                  </View>
+                )}
+                {selectedDuration !== null && (
+                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
+                    <Text className="text-xs font-medium text-primary">
+                      {DURATIONS.find((d) => d.id === selectedDuration)?.label}
+                    </Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedLevel("both");
+                    setSelectedType(null);
+                    setSelectedDuration(null);
+                  }}
+                  className="ml-auto"
+                >
+                  <Text className="text-xs font-semibold text-primary underline">Clear All</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* Filter and Sort Controls */}
           <View className="flex-row gap-2">
             <TouchableOpacity
