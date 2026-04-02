@@ -41,7 +41,10 @@ export default function AdminDashboard() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Check authentication
-  const { data: user, isLoading: userLoading } = trpc.auth.me.useQuery();
+  const { data: user, isLoading: userLoading } = trpc.auth.profile.useQuery(undefined, {
+    retry: false,
+  });
+  const userError = userLoading ? null : !user ? "Not authenticated" : null;
 
   // Use tRPC queries - only enabled if user is admin
   const { data: opportunities_data, isLoading: oppsLoading, refetch: refetchOpps, error: oppsError } = trpc.admin.listAll.useQuery(undefined, {

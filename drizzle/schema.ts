@@ -14,7 +14,10 @@ export const users = mysqlTable("users", {
   /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
-  email: varchar("email", { length: 320 }),
+  email: varchar("email", { length: 320 }).unique(),
+  /** Hashed password for email/password authentication */
+  passwordHash: text("passwordHash"),
+  /** Login method: 'oauth' or 'email' */
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -91,6 +94,21 @@ export const userInterests = mysqlTable("userInterests", {
 
 export type UserInterest = typeof userInterests.$inferSelect;
 export type InsertUserInterest = typeof userInterests.$inferInsert;
+
+// Application tracking table for tracking user applications
+export const applications = mysqlTable("applications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  opportunityId: int("opportunityId").notNull(),
+  status: mysqlEnum("status", ["interested", "applied", "interviewing", "accepted", "rejected"]).default("interested").notNull(),
+  notes: text("notes"),
+  appliedAt: timestamp("appliedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Application = typeof applications.$inferSelect;
+export type InsertApplication = typeof applications.$inferInsert;
 
 // Email notifications table for tracking sent reminder emails
 export const emailNotifications = mysqlTable("emailNotifications", {

@@ -22,6 +22,13 @@
       "when": 1774867303271,
       "tag": "0002_tiny_the_order",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1775106308675,
+      "tag": "0003_harsh_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

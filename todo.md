@@ -179,3 +179,20 @@
 - [x] Add active filter badges display
 - [x] Implement clear filters button
 - [x] Test real-time filtering performance
+
+
+## User Authentication & Accounts
+- [ ] Create users table in database schema
+- [ ] Add password hashing with bcrypt
+- [ ] Create signup tRPC procedure
+- [ ] Create login tRPC procedure
+- [ ] Create logout tRPC procedure
+- [ ] Create profile update tRPC procedure
+- [ ] Build signup screen UI
+- [ ] Build login screen UI
+- [ ] Build profile screen UI
+- [ ] Create auth context for session management
+- [ ] Add auth guards to protected screens
+- [ ] Implement persistent session storage
+- [ ] Test authentication flow
+- [ ] Document authentication setup
