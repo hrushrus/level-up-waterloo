@@ -5,6 +5,9 @@ import {
   authenticateUser,
   updateUserProfile,
   changePassword,
+  createVerificationToken,
+  verifyEmailWithToken,
+  resendVerificationEmail,
 } from "@/server/services/auth-service";
 import { COOKIE_NAME } from "@/shared/const";
 
@@ -38,8 +41,8 @@ export const authRouter = router({
         // Create new user
         const user = await createUser(input.email, input.password, input.name);
 
-        // Set session cookie
-        ctx.res.setHeader("Set-Cookie", `${COOKIE_NAME}=${user.id}; Path=/; HttpOnly; Secure; SameSite=None`);
+        // Create verification token and send email
+        const token = await createVerificationToken(user.id);
 
         return {
           success: true,
@@ -48,7 +51,9 @@ export const authRouter = router({
             email: user.email,
             name: user.name,
             role: user.role,
+            emailVerified: user.emailVerified,
           },
+          message: "Signup successful. Please check your email to verify your account.",
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : "Signup failed";
@@ -75,6 +80,11 @@ export const authRouter = router({
           throw new Error("Invalid email or password");
         }
 
+        // Check if email is verified
+        if (!user.emailVerified) {
+          throw new Error("Please verify your email before logging in");
+        }
+
         // Set session cookie
         ctx.res.setHeader("Set-Cookie", `${COOKIE_NAME}=${user.id}; Path=/; HttpOnly; Secure; SameSite=None`);
 
@@ -85,6 +95,7 @@ export const authRouter = router({
             email: user.email,
             name: user.name,
             role: user.role,
+            emailVerified: user.emailVerified,
           },
         };
       } catch (error) {
@@ -122,6 +133,7 @@ export const authRouter = router({
       email: ctx.user.email,
       name: ctx.user.name,
       role: ctx.user.role,
+      emailVerified: ctx.user.emailVerified,
       createdAt: ctx.user.createdAt,
       lastSignedIn: ctx.user.lastSignedIn,
     };
@@ -156,6 +168,7 @@ export const authRouter = router({
             email: user.email,
             name: user.name,
             role: user.role,
+            emailVerified: user.emailVerified,
           },
         };
       } catch (error) {
@@ -185,6 +198,58 @@ export const authRouter = router({
         return { success: true };
       } catch (error) {
         const message = error instanceof Error ? error.message : "Password change failed";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Send verification email to user
+   */
+  sendVerificationEmail: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email("Invalid email address"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        await resendVerificationEmail(input.email);
+        return { success: true, message: "Verification email sent" };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to send verification email";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Verify email with token
+   */
+  verifyEmail: publicProcedure
+    .input(
+      z.object({
+        token: z.string().min(1, "Verification token is required"),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const user = await verifyEmailWithToken(input.token);
+
+        // Set session cookie
+        ctx.res.setHeader("Set-Cookie", `${COOKIE_NAME}=${user.id}; Path=/; HttpOnly; Secure; SameSite=None`);
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            emailVerified: user.emailVerified,
+          },
+          message: "Email verified successfully",
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Email verification failed";
         throw new Error(message);
       }
     }),

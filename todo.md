@@ -196,3 +196,15 @@
 - [ ] Implement persistent session storage
 - [ ] Test authentication flow
 - [ ] Document authentication setup
+
+## Email Verification Flow
+- [x] Update users table schema with email verification fields
+- [x] Create email verification token generation logic
+- [x] Implement sendVerificationEmail tRPC procedure
+- [x] Implement verifyEmail tRPC procedure
+- [x] Create email verification screen UI
+- [x] Update auth context to handle verification state
+- [x] Modify route guards to enforce email verification
+- [ ] Create email verification template
+- [ ] Test email verification flow end-to-end
+- [ ] Document email verification setup

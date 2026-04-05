@@ -167,3 +167,108 @@ export async function changePassword(
     .set({ passwordHash: newPasswordHash })
     .where(eq(users.id, userId));
 }
+
+
+/**
+ * Generate a random verification token
+ */
+function generateVerificationToken(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+/**
+ * Send verification email to user
+ * In production, this would integrate with an email service like SendGrid or Resend
+ */
+export async function sendVerificationEmail(
+  email: string,
+  verificationToken: string,
+  userName?: string
+): Promise<void> {
+  // TODO: Integrate with email service (SendGrid, Resend, etc.)
+  // For now, just log the token
+  console.log(`[EMAIL] Verification email sent to ${email}`);
+  console.log(`[EMAIL] Verification token: ${verificationToken}`);
+  console.log(`[EMAIL] Verification link: ${process.env.APP_URL}/verify-email?token=${verificationToken}`);
+}
+
+/**
+ * Create verification token for user
+ */
+export async function createVerificationToken(userId: number): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const token = generateVerificationToken();
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  await db
+    .update(users)
+    .set({
+      emailVerificationToken: token,
+      emailVerificationTokenExpiresAt: expiresAt,
+    })
+    .where(eq(users.id, userId));
+
+  return token;
+}
+
+/**
+ * Verify email with token
+ */
+export async function verifyEmailWithToken(token: string): Promise<User> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.emailVerificationToken, token))
+    .limit(1);
+
+  const user = result.length > 0 ? result[0] : null;
+
+  if (!user) {
+    throw new Error("Invalid verification token");
+  }
+
+  // Check if token has expired
+  if (user.emailVerificationTokenExpiresAt && user.emailVerificationTokenExpiresAt < new Date()) {
+    throw new Error("Verification token has expired");
+  }
+
+  // Mark email as verified
+  await db
+    .update(users)
+    .set({
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationTokenExpiresAt: null,
+    })
+    .where(eq(users.id, user.id));
+
+  return user;
+}
+
+/**
+ * Resend verification email
+ */
+export async function resendVerificationEmail(email: string): Promise<void> {
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (user.emailVerified) {
+    throw new Error("Email is already verified");
+  }
+
+  const token = await createVerificationToken(user.id);
+  await sendVerificationEmail(email, token, user.name || undefined);
+}

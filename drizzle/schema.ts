@@ -20,6 +20,12 @@ export const users = mysqlTable("users", {
   /** Login method: 'oauth' or 'email' */
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  /** Email verification status */
+  emailVerified: boolean("emailVerified").default(false).notNull(),
+  /** Email verification token */
+  emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
+  /** Email verification token expiration */
+  emailVerificationTokenExpiresAt: timestamp("emailVerificationTokenExpiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

@@ -29,26 +29,37 @@ export const unstable_settings = {
 };
 
 /**
- * Route guard component that handles navigation based on auth state
+ * Route guard component that handles navigation based on auth state and email verification
  */
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { isSignedIn, isLoading } = useAuth();
+  const { isSignedIn, isLoading, needsEmailVerification } = useAuth();
 
   useEffect(() => {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const inVerifyEmailScreen = segments[1] === "verify-email";
 
+    // Not signed in - redirect to login
     if (!isSignedIn && !inAuthGroup) {
-      // User is not signed in and not in auth group, redirect to login
       router.replace("/(auth)/login");
-    } else if (isSignedIn && inAuthGroup) {
-      // User is signed in and in auth group, redirect to home
-      router.replace("/(tabs)");
+      return;
     }
-  }, [isSignedIn, isLoading, segments]);
+
+    // Signed in but email not verified - redirect to verification screen
+    if (isSignedIn && needsEmailVerification && !inVerifyEmailScreen) {
+      router.replace("/(auth)/verify-email");
+      return;
+    }
+
+    // Signed in with verified email but in auth group - redirect to home
+    if (isSignedIn && !needsEmailVerification && inAuthGroup) {
+      router.replace("/(tabs)");
+      return;
+    }
+  }, [isSignedIn, isLoading, needsEmailVerification, segments]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

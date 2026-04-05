@@ -9,10 +9,14 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isSignedIn: boolean;
+  isEmailVerified: boolean;
+  needsEmailVerification: boolean;
   error: string | null;
   signup: (email: string, password: string, name: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
+  resendVerificationEmail: (email: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -158,6 +162,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const verifyEmail = async (token: string) => {
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.verifyEmail`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          json: { token },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Email verification failed");
+      }
+
+      const data = await response.json();
+
+      if (data.result?.data?.success) {
+        const verifiedUser: AuthUser = {
+          id: data.result.data.user.id,
+          openId: "",
+          email: data.result.data.user.email,
+          name: data.result.data.user.name,
+          loginMethod: "email",
+          lastSignedIn: new Date(),
+        };
+        setUser(verifiedUser);
+        await Auth.setUserInfo(verifiedUser);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Email verification failed";
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      setError(null);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.sendVerificationEmail`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          json: { email },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to resend verification email");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to resend verification email";
+      setError(message);
+      throw err;
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -166,10 +242,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isLoading,
     isSignedIn: user !== null,
+    isEmailVerified: user?.emailVerified ?? false,
+    needsEmailVerification: user !== null && !user.emailVerified,
     error,
     signup,
     login,
     logout,
+    verifyEmail,
+    resendVerificationEmail,
     clearError,
   };
 
