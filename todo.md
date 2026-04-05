@@ -220,3 +220,15 @@
 - [x] Add password reset routes and navigation
 - [x] Test password reset flow end-to-end
 - [ ] Document password reset setup
+
+## Security Questions for Account Recovery
+- [x] Update users table schema with security question fields
+- [x] Create security questions table with predefined questions
+- [x] Implement setSecurityQuestions tRPC procedure
+- [x] Implement verifySecurityQuestions tRPC procedure
+- [x] Create security questions setup screen UI
+- [x] Create security questions verification screen UI
+- [x] Update auth context with security question methods
+- [x] Add security questions to account recovery flow
+- [x] Test security questions flow end-to-end
+- [ ] Document security questions setup

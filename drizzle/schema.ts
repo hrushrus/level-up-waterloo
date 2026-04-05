@@ -30,6 +30,10 @@ export const users = mysqlTable("users", {
   passwordResetToken: varchar("passwordResetToken", { length: 255 }),
   /** Password reset token expiration */
   passwordResetTokenExpiresAt: timestamp("passwordResetTokenExpiresAt"),
+  /** Security questions setup flag */
+  securityQuestionsSetup: boolean("securityQuestionsSetup").default(false).notNull(),
+  /** Encrypted security question answers (JSON format) */
+  securityQuestionAnswers: text("securityQuestionAnswers"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

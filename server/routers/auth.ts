@@ -11,6 +11,10 @@ import {
   requestPasswordReset,
   resetPasswordWithToken,
   validatePasswordResetToken,
+  setSecurityQuestions,
+  verifySecurityQuestions,
+  getSecurityQuestions,
+  hasSecurityQuestions,
 } from "@/server/services/auth-service";
 import { COOKIE_NAME } from "@/shared/const";
 
@@ -331,6 +335,120 @@ export const authRouter = router({
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : "Password reset failed";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Check if user has security questions set up
+   */
+  hasSecurityQuestions: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email("Invalid email address"),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const hasQuestions = await hasSecurityQuestions(input.email);
+        return {
+          success: true,
+          hasSecurityQuestions: hasQuestions,
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to check security questions";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Get security questions for verification (without answers)
+   */
+  getSecurityQuestions: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email("Invalid email address"),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const questions = await getSecurityQuestions(input.email);
+        return {
+          success: true,
+          questions,
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to get security questions";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Set security questions for authenticated user
+   */
+  setSecurityQuestions: publicProcedure
+    .input(
+      z.object({
+        questions: z.array(
+          z.object({
+            questionId: z.number(),
+            question: z.string(),
+            answer: z.string().min(1, "Answer is required"),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.user) {
+        throw new Error("Not authenticated");
+      }
+
+      try {
+        await setSecurityQuestions(ctx.user.id, input.questions);
+        return {
+          success: true,
+          message: "Security questions set up successfully",
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to set security questions";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Verify security questions for account recovery
+   */
+  verifySecurityQuestions: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email("Invalid email address"),
+        answers: z.array(
+          z.object({
+            questionId: z.number(),
+            answer: z.string().min(1, "Answer is required"),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const user = await verifySecurityQuestions(input.email, input.answers);
+
+        // Set session cookie to auto-login after verification
+        ctx.res.setHeader("Set-Cookie", `${COOKIE_NAME}=${user.id}; Path=/; HttpOnly; Secure; SameSite=None`);
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+          message: "Security questions verified successfully",
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Security questions verification failed";
         throw new Error(message);
       }
     }),

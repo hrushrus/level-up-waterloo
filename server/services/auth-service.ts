@@ -399,3 +399,158 @@ export async function validatePasswordResetToken(token: string): Promise<User> {
 
   return user;
 }
+
+
+/**
+ * Hash security question answers for storage
+ * Answers are normalized: lowercase, trimmed, and hashed
+ */
+async function hashSecurityAnswer(answer: string): Promise<string> {
+  const normalized = answer.toLowerCase().trim();
+  return hash(normalized, SALT_ROUNDS);
+}
+
+/**
+ * Verify security question answer
+ */
+async function verifySecurityAnswer(answer: string, hashedAnswer: string): Promise<boolean> {
+  const normalized = answer.toLowerCase().trim();
+  return compare(normalized, hashedAnswer);
+}
+
+/**
+ * Set security questions for a user
+ * Stores 3 security questions with hashed answers
+ */
+export async function setSecurityQuestions(
+  userId: number,
+  questions: Array<{ questionId: number; question: string; answer: string }>
+): Promise<void> {
+  if (questions.length !== 3) {
+    throw new Error("Must provide exactly 3 security questions");
+  }
+
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  // Hash all answers
+  const hashedQuestions = await Promise.all(
+    questions.map(async (q) => ({
+      questionId: q.questionId,
+      question: q.question,
+      answer: await hashSecurityAnswer(q.answer),
+    }))
+  );
+
+  // Store as JSON
+  const questionsData = JSON.stringify({
+    questions: hashedQuestions,
+    setupDate: new Date().toISOString(),
+  });
+
+  await db
+    .update(users)
+    .set({
+      securityQuestionsSetup: true,
+      securityQuestionAnswers: questionsData,
+    })
+    .where(eq(users.id, userId));
+}
+
+/**
+ * Verify security questions for account recovery
+ * User must answer all 3 questions correctly
+ */
+export async function verifySecurityQuestions(
+  email: string,
+  answers: Array<{ questionId: number; answer: string }>
+): Promise<User> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (!user.securityQuestionsSetup || !user.securityQuestionAnswers) {
+    throw new Error("Security questions not set up for this account");
+  }
+
+  if (answers.length !== 3) {
+    throw new Error("Must provide answers to all 3 security questions");
+  }
+
+  // Parse stored questions
+  let storedQuestions: any;
+  try {
+    storedQuestions = JSON.parse(user.securityQuestionAnswers);
+  } catch (err) {
+    throw new Error("Failed to parse security questions");
+  }
+
+  // Verify each answer
+  for (const answer of answers) {
+    const storedQuestion = storedQuestions.questions.find(
+      (q: any) => q.questionId === answer.questionId
+    );
+
+    if (!storedQuestion) {
+      throw new Error("Invalid question ID");
+    }
+
+    const isCorrect = await verifySecurityAnswer(answer.answer, storedQuestion.answer);
+    if (!isCorrect) {
+      throw new Error("One or more security question answers are incorrect");
+    }
+  }
+
+  return user;
+}
+
+/**
+ * Get security questions for a user (without answers)
+ * Used to display questions during verification
+ */
+export async function getSecurityQuestions(email: string): Promise<Array<{ questionId: number; question: string }>> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (!user.securityQuestionsSetup || !user.securityQuestionAnswers) {
+    throw new Error("Security questions not set up for this account");
+  }
+
+  // Parse stored questions
+  let storedQuestions: any;
+  try {
+    storedQuestions = JSON.parse(user.securityQuestionAnswers);
+  } catch (err) {
+    throw new Error("Failed to parse security questions");
+  }
+
+  // Return questions without answers
+  return storedQuestions.questions.map((q: any) => ({
+    questionId: q.questionId,
+    question: q.question,
+  }));
+}
+
+/**
+ * Check if user has security questions set up
+ */
+export async function hasSecurityQuestions(email: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    return false;
+  }
+
+  return user.securityQuestionsSetup === true;
+}

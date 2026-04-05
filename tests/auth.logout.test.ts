@@ -26,6 +26,8 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
     emailVerificationTokenExpiresAt: null,
     passwordResetToken: null,
     passwordResetTokenExpiresAt: null,
+    securityQuestionsSetup: false,
+    securityQuestionAnswers: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

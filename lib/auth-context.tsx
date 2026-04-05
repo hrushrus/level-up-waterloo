@@ -5,6 +5,11 @@ import { getApiBaseUrl } from "@/constants/oauth";
 
 export type AuthUser = User;
 
+interface SecurityQuestion {
+  questionId: number;
+  question: string;
+}
+
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
@@ -20,6 +25,10 @@ interface AuthContextType {
   requestPasswordReset: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
   validateResetToken: (token: string) => Promise<string>;
+  setSecurityQuestions: (questions: Array<{ questionId: number; question: string; answer: string }>) => Promise<void>;
+  verifySecurityQuestions: (email: string, answers: Array<{ questionId: number; answer: string }>) => Promise<void>;
+  getSecurityQuestions: (email: string) => Promise<SecurityQuestion[]>;
+  hasSecurityQuestions: (email: string) => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -339,6 +348,141 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setSecurityQuestions = async (questions: Array<{ questionId: number; question: string; answer: string }>) => {
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.setSecurityQuestions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          json: { questions },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to set security questions");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to set security questions";
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifySecurityQuestions = async (email: string, answers: Array<{ questionId: number; answer: string }>) => {
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.verifySecurityQuestions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          json: { email, answers },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Security questions verification failed");
+      }
+
+      const data = await response.json();
+
+      if (data.result?.data?.success) {
+        const verifiedUser: AuthUser = {
+          id: data.result.data.user.id,
+          openId: "",
+          email: data.result.data.user.email,
+          name: data.result.data.user.name,
+          loginMethod: "email",
+          lastSignedIn: new Date(),
+        };
+        setUser(verifiedUser);
+        await Auth.setUserInfo(verifiedUser);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Security questions verification failed";
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getSecurityQuestions = async (email: string): Promise<SecurityQuestion[]> => {
+    try {
+      setError(null);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(
+        `${apiUrl}/api/trpc/auth.getSecurityQuestions?input=${encodeURIComponent(JSON.stringify({ email }))}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to get security questions");
+      }
+
+      const data = await response.json();
+      return data.result?.data?.questions || [];
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to get security questions";
+      setError(message);
+      throw err;
+    }
+  };
+
+  const hasSecurityQuestions = async (email: string): Promise<boolean> => {
+    try {
+      setError(null);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(
+        `${apiUrl}/api/trpc/auth.hasSecurityQuestions?input=${encodeURIComponent(JSON.stringify({ email }))}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to check security questions");
+      }
+
+      const data = await response.json();
+      return data.result?.data?.hasSecurityQuestions || false;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to check security questions";
+      setError(message);
+      throw err;
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -358,6 +502,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     requestPasswordReset,
     resetPassword,
     validateResetToken,
+    setSecurityQuestions,
+    verifySecurityQuestions,
+    getSecurityQuestions,
+    hasSecurityQuestions,
     clearError,
   };
 

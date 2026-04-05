@@ -123,6 +123,17 @@ export default function ForgotPasswordScreen() {
             )}
           </TouchableOpacity>
 
+          {/* Security Questions Option */}
+          <View className="my-6 border-t border-border pt-6">
+            <Text className="text-sm font-semibold text-foreground mb-3">Alternative Recovery Method</Text>
+            <TouchableOpacity
+              className="w-full bg-surface border border-border rounded-lg py-3 items-center"
+              onPress={() => router.push({ pathname: "/(auth)/verify-security-questions", params: { email } })}
+            >
+              <Text className="text-foreground font-semibold text-base">Use Security Questions</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Back to Login */}
           <TouchableOpacity
             className="w-full bg-surface border border-border rounded-lg py-3 items-center"
