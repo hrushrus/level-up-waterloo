@@ -17,6 +17,9 @@ interface AuthContextType {
   logout: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   resendVerificationEmail: (email: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  validateResetToken: (token: string) => Promise<string>;
   clearError: () => void;
 }
 
@@ -234,6 +237,108 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      setError(null);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.requestPasswordReset`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          json: { email },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to request password reset");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to request password reset";
+      setError(message);
+      throw err;
+    }
+  };
+
+  const validateResetToken = async (token: string): Promise<string> => {
+    try {
+      setError(null);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(
+        `${apiUrl}/api/trpc/auth.validateResetToken?input=${encodeURIComponent(JSON.stringify({ token }))}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Invalid or expired token");
+      }
+
+      const data = await response.json();
+      return data.result?.data?.email || "";
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to validate token";
+      setError(message);
+      throw err;
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.resetPassword`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          json: { token, newPassword },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Password reset failed");
+      }
+
+      const data = await response.json();
+
+      if (data.result?.data?.success) {
+        const resetUser: AuthUser = {
+          id: data.result.data.user.id,
+          openId: "",
+          email: data.result.data.user.email,
+          name: data.result.data.user.name,
+          loginMethod: "email",
+          lastSignedIn: new Date(),
+        };
+        setUser(resetUser);
+        await Auth.setUserInfo(resetUser);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Password reset failed";
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -250,6 +355,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     verifyEmail,
     resendVerificationEmail,
+    requestPasswordReset,
+    resetPassword,
+    validateResetToken,
     clearError,
   };
 

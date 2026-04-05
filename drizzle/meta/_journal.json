@@ -36,6 +36,13 @@
       "when": 1775384042631,
       "tag": "0004_nice_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1775388201413,
+      "tag": "0005_freezing_scarlet_witch",
+      "breakpoints": true
     }
   ]
 }

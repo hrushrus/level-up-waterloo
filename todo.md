@@ -208,3 +208,15 @@
 - [ ] Create email verification template
 - [ ] Test email verification flow end-to-end
 - [ ] Document email verification setup
+
+## Password Reset Flow
+- [x] Update users table schema with password reset fields
+- [x] Create password reset token generation logic
+- [x] Implement requestPasswordReset tRPC procedure
+- [x] Implement resetPassword tRPC procedure
+- [x] Create forgot password screen UI
+- [x] Create reset password screen UI
+- [x] Update auth context with password reset methods
+- [x] Add password reset routes and navigation
+- [x] Test password reset flow end-to-end
+- [ ] Document password reset setup

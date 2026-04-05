@@ -8,6 +8,9 @@ import {
   createVerificationToken,
   verifyEmailWithToken,
   resendVerificationEmail,
+  requestPasswordReset,
+  resetPasswordWithToken,
+  validatePasswordResetToken,
 } from "@/server/services/auth-service";
 import { COOKIE_NAME } from "@/shared/const";
 
@@ -250,6 +253,84 @@ export const authRouter = router({
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : "Email verification failed";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Request password reset
+   */
+  requestPasswordReset: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email("Invalid email address"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        await requestPasswordReset(input.email);
+        return {
+          success: true,
+          message: "If this email is registered, you will receive a password reset link",
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to request password reset";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Validate password reset token
+   */
+  validateResetToken: publicProcedure
+    .input(
+      z.object({
+        token: z.string().min(1, "Reset token is required"),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const user = await validatePasswordResetToken(input.token);
+        return {
+          success: true,
+          email: user.email,
+          message: "Token is valid",
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Invalid or expired token";
+        throw new Error(message);
+      }
+    }),
+
+  /**
+   * Reset password with token
+   */
+  resetPassword: publicProcedure
+    .input(
+      z.object({
+        token: z.string().min(1, "Reset token is required"),
+        newPassword: z.string().min(8, "Password must be at least 8 characters"),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const user = await resetPasswordWithToken(input.token, input.newPassword);
+
+        // Set session cookie to auto-login after password reset
+        ctx.res.setHeader("Set-Cookie", `${COOKIE_NAME}=${user.id}; Path=/; HttpOnly; Secure; SameSite=None`);
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+          message: "Password reset successfully",
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Password reset failed";
         throw new Error(message);
       }
     }),

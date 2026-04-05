@@ -272,3 +272,130 @@ export async function resendVerificationEmail(email: string): Promise<void> {
   const token = await createVerificationToken(user.id);
   await sendVerificationEmail(email, token, user.name || undefined);
 }
+
+
+/**
+ * Generate a random password reset token
+ */
+function generatePasswordResetToken(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+/**
+ * Send password reset email to user
+ * In production, this would integrate with an email service like SendGrid or Resend
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  resetToken: string,
+  userName?: string
+): Promise<void> {
+  // TODO: Integrate with email service (SendGrid, Resend, etc.)
+  // For now, just log the token
+  console.log(`[EMAIL] Password reset email sent to ${email}`);
+  console.log(`[EMAIL] Reset token: ${resetToken}`);
+  console.log(`[EMAIL] Reset link: ${process.env.APP_URL}/reset-password?token=${resetToken}`);
+}
+
+/**
+ * Request password reset - generates token and sends email
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    // Don't reveal if email exists for security
+    throw new Error("If this email is registered, you will receive a password reset link");
+  }
+
+  // Generate reset token with 1-hour expiration
+  const token = generatePasswordResetToken();
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await db
+    .update(users)
+    .set({
+      passwordResetToken: token,
+      passwordResetTokenExpiresAt: expiresAt,
+    })
+    .where(eq(users.id, user.id));
+
+  // Send email with reset link
+  await sendPasswordResetEmail(email, token, user.name || undefined);
+}
+
+/**
+ * Reset password with token
+ */
+export async function resetPasswordWithToken(
+  token: string,
+  newPassword: string
+): Promise<User> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.passwordResetToken, token))
+    .limit(1);
+
+  const user = result.length > 0 ? result[0] : null;
+
+  if (!user) {
+    throw new Error("Invalid or expired reset token");
+  }
+
+  // Check if token has expired
+  if (user.passwordResetTokenExpiresAt && user.passwordResetTokenExpiresAt < new Date()) {
+    throw new Error("Reset token has expired");
+  }
+
+  // Hash new password and update
+  const newPasswordHash = await hashPassword(newPassword);
+
+  await db
+    .update(users)
+    .set({
+      passwordHash: newPasswordHash,
+      passwordResetToken: null,
+      passwordResetTokenExpiresAt: null,
+    })
+    .where(eq(users.id, user.id));
+
+  return user;
+}
+
+/**
+ * Validate password reset token
+ */
+export async function validatePasswordResetToken(token: string): Promise<User> {
+  const db = await getDb();
+  if (!db) throw new Error("Database connection failed");
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.passwordResetToken, token))
+    .limit(1);
+
+  const user = result.length > 0 ? result[0] : null;
+
+  if (!user) {
+    throw new Error("Invalid reset token");
+  }
+
+  // Check if token has expired
+  if (user.passwordResetTokenExpiresAt && user.passwordResetTokenExpiresAt < new Date()) {
+    throw new Error("Reset token has expired");
+  }
+
+  return user;
+}
