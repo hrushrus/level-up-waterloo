@@ -15,8 +15,7 @@ export default function ProfileScreen() {
     try {
       setIsLoggingOut(true);
       await logout();
-      // Navigation will be handled by route guards
-      router.replace("/(auth)/login");
+      router.replace("/(tabs)");
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
@@ -39,8 +38,32 @@ export default function ProfileScreen() {
           {/* Header */}
           <View className="mb-8">
             <Text className="text-4xl font-bold text-foreground mb-2">Profile</Text>
-            <Text className="text-base text-muted">Manage your account settings</Text>
+            <Text className="text-base text-muted">
+              {user ? "Manage your account settings" : "Sign in to manage your account"}
+            </Text>
           </View>
+
+          {!user && (
+            <View className="bg-surface border border-border rounded-2xl p-6 mb-8">
+              <Text className="text-2xl font-bold text-foreground mb-3">Browse Without an Account</Text>
+              <Text className="text-base text-muted mb-6 leading-relaxed">
+                You can view, search, bookmark, and open opportunity details without signing in.
+                Create an account only if you want account-based features later.
+              </Text>
+              <TouchableOpacity
+                className="w-full bg-primary rounded-lg py-3 items-center mb-3"
+                onPress={() => router.push("/(auth)/login" as any)}
+              >
+                <Text className="text-white font-semibold text-base">Sign In</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="w-full bg-surface border border-border rounded-lg py-3 items-center"
+                onPress={() => router.push("/(auth)/signup" as any)}
+              >
+                <Text className="text-foreground font-semibold text-base">Create Account</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* User Info Card */}
           {user && (
@@ -81,34 +104,38 @@ export default function ProfileScreen() {
             </View>
           )}
 
-          {/* Account Actions */}
-          <View className="mb-8">
-            <Text className="text-sm font-semibold text-muted mb-4">Account Settings</Text>
+          {user && (
+            <>
+              {/* Account Actions */}
+              <View className="mb-8">
+                <Text className="text-sm font-semibold text-muted mb-4">Account Settings</Text>
 
-            {/* Edit Profile Button */}
-            <TouchableOpacity className="bg-surface border border-border rounded-lg py-3 px-4 mb-3">
-              <Text className="text-foreground font-semibold text-base">Edit Profile</Text>
-            </TouchableOpacity>
+                {/* Edit Profile Button */}
+                <TouchableOpacity className="bg-surface border border-border rounded-lg py-3 px-4 mb-3">
+                  <Text className="text-foreground font-semibold text-base">Edit Profile</Text>
+                </TouchableOpacity>
 
-            {/* Change Password Button */}
-            <TouchableOpacity className="bg-surface border border-border rounded-lg py-3 px-4 mb-3">
-              <Text className="text-foreground font-semibold text-base">Change Password</Text>
-            </TouchableOpacity>
-          </View>
+                {/* Change Password Button */}
+                <TouchableOpacity className="bg-surface border border-border rounded-lg py-3 px-4 mb-3">
+                  <Text className="text-foreground font-semibold text-base">Change Password</Text>
+                </TouchableOpacity>
+              </View>
 
-          {/* Logout Button */}
-          <TouchableOpacity
-            className="w-full bg-error rounded-lg py-3 items-center"
-            onPress={handleLogout}
-            disabled={isLoggingOut}
-            style={isLoggingOut ? { opacity: 0.6 } : {}}
-          >
-            {isLoggingOut ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white font-semibold text-base">Sign Out</Text>
-            )}
-          </TouchableOpacity>
+              {/* Logout Button */}
+              <TouchableOpacity
+                className="w-full bg-error rounded-lg py-3 items-center"
+                onPress={handleLogout}
+                disabled={isLoggingOut}
+                style={isLoggingOut ? { opacity: 0.6 } : {}}
+              >
+                {isLoggingOut ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white font-semibold text-base">Sign Out</Text>
+                )}
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
     </ScreenContainer>

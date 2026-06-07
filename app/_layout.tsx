@@ -29,7 +29,7 @@ export const unstable_settings = {
 };
 
 /**
- * Route guard component that handles navigation based on auth state and email verification
+ * Route guard component that keeps browsing public and only gates account-only flows.
  */
 function RootLayoutNav() {
   const router = useRouter();
@@ -42,13 +42,7 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
     const inVerifyEmailScreen = segments[1] === "verify-email";
 
-    // Not signed in - redirect to login
-    if (!isSignedIn && !inAuthGroup) {
-      router.replace("/(auth)/login");
-      return;
-    }
-
-    // Signed in but email not verified - redirect to verification screen
+    // Signed-in users must verify email before using account-specific flows.
     if (isSignedIn && needsEmailVerification && !inVerifyEmailScreen) {
       router.replace("/(auth)/verify-email");
       return;
