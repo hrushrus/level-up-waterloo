@@ -10,7 +10,7 @@
     "build": "esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:web": "expo export --platform web",
     "start": "NODE_ENV=production node dist/index.js",
-    "deploy:web": "eas deploy --environment production",
+    "deploy:web": "npx eas-cli@latest env:exec production 'expo export --platform web' --non-interactive && npx eas-cli@latest deploy --prod --environment production --export-dir dist --non-interactive",
     "check": "tsc --noEmit",
     "lint": "expo lint",
     "format": "prettier --write .",

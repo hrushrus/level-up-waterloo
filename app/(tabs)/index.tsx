@@ -67,16 +67,25 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   // Fetch all opportunities
-  const { data: allOpps, isLoading: allOppsLoading } = trpc.opportunities.list.useQuery();
+  const {
+    data: allOpps,
+    isLoading: allOppsLoading,
+    error: allOppsError,
+    refetch: refetchAllOpps,
+  } = trpc.opportunities.list.useQuery();
 
   // Fetch opportunities by category
-  const { data: categoryOpps, isLoading: categoryOppsLoading } = trpc.opportunities.byCategory.useQuery(
+  const {
+    data: categoryOpps,
+    isLoading: categoryOppsLoading,
+    error: categoryOppsError,
+    refetch: refetchCategoryOpps,
+  } = trpc.opportunities.byCategory.useQuery(
     { category: selectedCategory },
-    { enabled: selectedCategory !== "all" && selectedCategory !== "closing_soon" }
+    { enabled: selectedCategory !== "all" && selectedCategory !== "closing_soon" },
   );
+  const queryError = allOppsError ?? categoryOppsError;
 
   useEffect(() => {
     setLoading(allOppsLoading || categoryOppsLoading);
@@ -508,9 +517,22 @@ export default function HomeScreen() {
               <View className="items-center justify-center py-8">
                 <ActivityIndicator size="large" color="#0a7ea4" />
               </View>
-            ) : error ? (
+            ) : queryError ? (
               <View className="items-center justify-center py-8">
-                <Text className="text-error text-center">{error}</Text>
+                <Text className="text-error text-center mb-3">
+                  Unable to load opportunities. Please try again.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    void refetchAllOpps();
+                    if (selectedCategory !== "all" && selectedCategory !== "closing_soon") {
+                      void refetchCategoryOpps();
+                    }
+                  }}
+                  className="bg-primary px-5 py-2 rounded-lg"
+                >
+                  <Text className="text-white font-semibold">Retry</Text>
+                </TouchableOpacity>
               </View>
             ) : opportunities.length > 0 ? (
               <FlatList
