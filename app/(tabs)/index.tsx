@@ -219,7 +219,7 @@ export default function HomeScreen() {
           <View className="gap-3 items-center mb-2">
             <Image
               source={require("@/assets/images/icon.png")}
-              style={{ width: 80, height: 80 }}
+              style={{ width: 128, height: 128 }}
               resizeMode="contain"
             />
             <View className="gap-2 items-center">
