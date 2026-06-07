@@ -1,4 +1,5 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+import type { OpportunityTag } from "../shared/opportunity-tags";
 
 /**
  * Core user table backing auth flow.
@@ -63,6 +64,7 @@ export const opportunities = mysqlTable("opportunities", {
   level: mysqlEnum("level", ["both", "middle_school", "high_school"]).default("both").notNull(),
   type: mysqlEnum("type", ["in_person", "online", "hybrid"]).default("in_person").notNull(),
   duration: mysqlEnum("duration", ["short", "medium", "long"]).default("long").notNull(),
+  tags: json("tags").$type<OpportunityTag[]>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

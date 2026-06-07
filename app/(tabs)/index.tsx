@@ -4,6 +4,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
 import { useRouter } from "expo-router";
 import { useBookmarks } from "@/lib/bookmark-context";
+import { OPPORTUNITY_TAGS, type OpportunityTag } from "@/shared/opportunity-tags";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -49,6 +50,7 @@ interface Opportunity {
   level: string;
   type: string;
   duration: string;
+  tags: OpportunityTag[] | null;
   deadline: Date | null;
 }
 
@@ -59,6 +61,7 @@ export default function HomeScreen() {
   const [selectedLevel, setSelectedLevel] = useState("both");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<OpportunityTag[]>([]);
   const [sortBy, setSortBy] = useState("newest");
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,7 +105,8 @@ export default function HomeScreen() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((opp) =>
         opp.title.toLowerCase().includes(query) ||
-        opp.description.toLowerCase().includes(query)
+        opp.description.toLowerCase().includes(query) ||
+        (opp.tags ?? []).some((tag) => tag.includes(query))
       );
     }
 
@@ -121,6 +125,12 @@ export default function HomeScreen() {
       filtered = filtered.filter((opp) => opp.duration === selectedDuration);
     }
 
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((opp) =>
+        selectedTags.some((tag) => (opp.tags ?? []).includes(tag))
+      );
+    }
+
     // Apply sorting
     const sorted = [...filtered];
     if (sortBy === "deadline") {
@@ -136,7 +146,7 @@ export default function HomeScreen() {
     }
 
     return sorted;
-  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, sortBy, searchQuery, allOpps, categoryOpps]);
+  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, selectedTags, sortBy, searchQuery, allOpps, categoryOpps]);
 
   useEffect(() => {
     setOpportunities(filteredAndSorted);
@@ -153,7 +163,10 @@ export default function HomeScreen() {
           <View className="flex-row justify-between items-start mb-2">
             <Text className="text-lg font-semibold text-foreground flex-1">{item.title}</Text>
             <TouchableOpacity
-              onPress={() => toggleBookmark(item.id)}
+              onPress={(event) => {
+                event.stopPropagation();
+                toggleBookmark(item.id);
+              }}
               className="ml-2"
             >
               <Text className="text-xl">{isBookmarkedState ? "❤️" : "🤍"}</Text>
@@ -172,8 +185,16 @@ export default function HomeScreen() {
             <View className="bg-primary/10 px-3 py-1 rounded-full">
               <Text className="text-xs font-medium text-primary">{item.duration}</Text>
             </View>
+            {(item.tags ?? []).slice(0, 4).map((tag) => (
+              <View key={tag} className="bg-primary/5 px-3 py-1 rounded-full">
+                <Text className="text-xs font-medium text-primary">{tag}</Text>
+              </View>
+            ))}
           </View>
-          <TouchableOpacity className="bg-primary px-4 py-2 rounded-lg">
+          <TouchableOpacity
+            onPress={() => router.push(`/opportunity/${item.id}`)}
+            className="bg-primary px-4 py-2 rounded-lg"
+          >
             <Text className="text-white font-semibold text-center">View Details</Text>
           </TouchableOpacity>
         </View>
@@ -248,7 +269,10 @@ export default function HomeScreen() {
           </View>
 
           {/* Active Filters Display */}
-          {(selectedLevel !== "both" || selectedType !== null || selectedDuration !== null) && (
+          {(selectedLevel !== "both" ||
+            selectedType !== null ||
+            selectedDuration !== null ||
+            selectedTags.length > 0) && (
             <View className="gap-2">
               <View className="flex-row flex-wrap gap-2 items-center">
                 {selectedLevel !== "both" && (
@@ -272,11 +296,17 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                 )}
+                {selectedTags.map((tag) => (
+                  <View key={tag} className="bg-primary/20 px-3 py-1 rounded-full">
+                    <Text className="text-xs font-medium text-primary">{tag}</Text>
+                  </View>
+                ))}
                 <TouchableOpacity
                   onPress={() => {
                     setSelectedLevel("both");
                     setSelectedType(null);
                     setSelectedDuration(null);
+                    setSelectedTags([]);
                   }}
                   className="ml-auto"
                 >
@@ -426,6 +456,39 @@ export default function HomeScreen() {
                       </Text>
                     </TouchableOpacity>
                   ))}
+                </View>
+              </View>
+
+              {/* Tag Filter */}
+              <View className="gap-2">
+                <Text className="text-sm font-semibold text-foreground">Tags</Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {OPPORTUNITY_TAGS.map((tag) => {
+                    const selected = selectedTags.includes(tag);
+                    return (
+                      <TouchableOpacity
+                        key={tag}
+                        onPress={() =>
+                          setSelectedTags(
+                            selected
+                              ? selectedTags.filter((item) => item !== tag)
+                              : [...selectedTags, tag]
+                          )
+                        }
+                        className={`px-3 py-1 rounded-full ${
+                          selected ? "bg-primary" : "bg-background border border-border"
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-medium ${
+                            selected ? "text-white" : "text-foreground"
+                          }`}
+                        >
+                          {tag}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
             </View>

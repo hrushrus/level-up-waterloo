@@ -3,6 +3,11 @@ import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { opportunities } from "../../drizzle/schema";
 import { eq, lt, and } from "drizzle-orm";
+import {
+  getOpportunityDiscoverySchedulerStatus,
+  triggerOpportunityDiscovery,
+} from "../schedulers/opportunity-discovery-scheduler";
+import { OPPORTUNITY_TAGS } from "../../shared/opportunity-tags";
 
 /**
  * Admin procedures for managing opportunities
@@ -28,6 +33,7 @@ export const adminRouter = router({
         level: z.enum(["both", "middle_school", "high_school"]).default("both"),
         type: z.enum(["in_person", "online", "hybrid"]).default("in_person"),
         duration: z.enum(["short", "medium", "long"]).default("long"),
+        tags: z.array(z.enum(OPPORTUNITY_TAGS)).default([]),
         deadline: z.string().or(z.date()).optional(),
         externalLink: z.string().url("Invalid URL").optional(),
         submittedBy: z.string().min(1, "Submitted by is required"),
@@ -54,6 +60,7 @@ export const adminRouter = router({
           level: input.level,
           type: input.type,
           duration: input.duration,
+          tags: input.tags,
           submittedBy: input.submittedBy,
           submitterEmail: input.submitterEmail,
           isApproved: input.isApproved,
@@ -100,6 +107,7 @@ export const adminRouter = router({
         level: z.enum(["both", "middle_school", "high_school"]).optional(),
         type: z.enum(["in_person", "online", "hybrid"]).optional(),
         duration: z.enum(["short", "medium", "long"]).optional(),
+        tags: z.array(z.enum(OPPORTUNITY_TAGS)).optional(),
         deadline: z.string().or(z.date()).optional(),
         externalLink: z.string().url().optional(),
         submittedBy: z.string().optional(),
@@ -132,6 +140,7 @@ export const adminRouter = router({
         if (updates.level !== undefined) updateData.level = updates.level;
         if (updates.type !== undefined) updateData.type = updates.type;
         if (updates.duration !== undefined) updateData.duration = updates.duration;
+        if (updates.tags !== undefined) updateData.tags = updates.tags;
         if (updates.deadline !== undefined) updateData.deadline = (updates as any).deadline;
         if (updates.externalLink !== undefined) updateData.externalLink = updates.externalLink;
         if (updates.submittedBy !== undefined) updateData.submittedBy = updates.submittedBy;
@@ -284,5 +293,24 @@ export const adminRouter = router({
     } catch (error) {
       throw new Error(`Failed to inactivate expired opportunities: ${error}`);
     }
+  }),
+
+  /**
+   * Manually run automated opportunity discovery.
+   * Discovered opportunities are inserted as unapproved unless explicitly auto-approved by env.
+   */
+  runOpportunityDiscovery: adminProcedure.mutation(async () => {
+    try {
+      return await triggerOpportunityDiscovery();
+    } catch (error) {
+      throw new Error(`Failed to run opportunity discovery: ${error}`);
+    }
+  }),
+
+  /**
+   * Get automated discovery scheduler status.
+   */
+  getOpportunityDiscoveryStatus: adminProcedure.query(() => {
+    return getOpportunityDiscoverySchedulerStatus();
   }),
 });

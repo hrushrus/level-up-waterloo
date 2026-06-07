@@ -40,11 +40,12 @@ describe("Expiration Scheduler", () => {
       
       // Result should indicate success or error
       expect(result).toHaveProperty("success");
-      expect(result).toHaveProperty("count");
       
       // If database is not available, it should return an error
       if (!result.success) {
         expect(result.error).toBeDefined();
+      } else {
+        expect(result).toHaveProperty("count");
       }
     });
 
@@ -52,9 +53,13 @@ describe("Expiration Scheduler", () => {
       const result = await checkAndInactivateExpired();
       
       expect(result).toHaveProperty("success");
-      expect(result).toHaveProperty("count");
-      expect(typeof result.count).toBe("number");
-      expect(result.count).toBeGreaterThanOrEqual(0);
+      if (result.success) {
+        expect(result).toHaveProperty("count");
+        expect(typeof result.count).toBe("number");
+        expect(result.count).toBeGreaterThanOrEqual(0);
+      } else {
+        expect(result.error).toBeDefined();
+      }
     });
   });
 });

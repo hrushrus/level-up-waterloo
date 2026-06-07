@@ -41,16 +41,16 @@ import { opportunities } from "../backend/drizzle/schema";
 
 async function addOpportunity() {
   const newOpportunity = {
-    title: "Waterloo Youth Mentorship Program",
-    description: "Mentor younger students in academics and personal development.",
-    category: "volunteering" as const,
-    level: "high_school" as const,
-    type: "in_person" as const,
-    duration: "long" as const,
-    deadline: new Date("2026-06-30"),
-    link: "https://www.waterlooyouthmentorship.ca/volunteer",
-    organization: "Waterloo Youth Services",
-    approved: true,
+    title: "CEMC Math Circles",
+    description: "Mathematics and computer-science enrichment for students in Grades 6-12.",
+    category: "stem_competition" as const,
+    level: "both" as const,
+    type: "hybrid" as const,
+    duration: "medium" as const,
+    externalLink: "https://cemc.uwaterloo.ca/workshops/student-workshops/math-circles",
+    submittedBy: "Centre for Education in Mathematics and Computing",
+    submitterEmail: "automation@levelupwaterloo.local",
+    isApproved: false,
   };
 
   try {
@@ -83,23 +83,21 @@ INSERT INTO opportunities (
   level,
   type,
   duration,
-  deadline,
-  link,
-  organization,
-  approved,
-  created_at
+  externalLink,
+  submittedBy,
+  submitterEmail,
+  isApproved
 ) VALUES (
-  'Waterloo Community Garden Volunteer',
-  'Help maintain community gardens and teach sustainable gardening practices.',
+  'Volunteer Waterloo Region',
+  'Regional portal for volunteer opportunities from local community organizations.',
   'volunteering',
   'both',
-  'in_person',
-  'long',
-  '2026-08-31',
-  'https://www.waterloocommunitygardens.ca',
-  'Waterloo Community Gardens',
-  true,
-  NOW()
+  'hybrid',
+  'medium',
+  'https://volunteerwr.ca/volunteer/',
+  'Volunteer Waterloo Region',
+  'automation@levelupwaterloo.local',
+  false
 );
 ```
 

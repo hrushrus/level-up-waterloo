@@ -2,6 +2,7 @@ import { parse } from "csv-parse/sync";
 import { getDb } from "../db";
 import { opportunities } from "../../drizzle/schema";
 import type { InsertOpportunity } from "../../drizzle/schema";
+import { isOpportunityTag, type OpportunityTag } from "../../shared/opportunity-tags";
 
 /**
  * Utility for importing opportunities from various sources
@@ -18,6 +19,7 @@ export interface OpportunityImportRow {
   level?: "both" | "middle_school" | "high_school";
   type?: "in_person" | "online" | "hybrid";
   duration?: "short" | "medium" | "long";
+  tags?: OpportunityTag[] | string;
   isApproved?: boolean | string; // "true"/"false" or true/false
 }
 
@@ -92,6 +94,15 @@ function validateOpportunity(row: OpportunityImportRow, rowNumber: number): { va
     errors.push(`Invalid duration: ${row.duration}`);
   }
 
+  const tags =
+    typeof row.tags === "string"
+      ? row.tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+      : row.tags ?? [];
+  const invalidTags = tags.filter((tag) => !isOpportunityTag(tag));
+  if (invalidTags.length > 0) {
+    errors.push(`Invalid tags: ${invalidTags.join(", ")}`);
+  }
+
   if (errors.length > 0) {
     return {
       valid: false,
@@ -121,6 +132,7 @@ function validateOpportunity(row: OpportunityImportRow, rowNumber: number): { va
     level: (row.level || "both") as "both" | "middle_school" | "high_school",
     type: (row.type || "in_person") as "in_person" | "online" | "hybrid",
     duration: (row.duration || "long") as "short" | "medium" | "long",
+    tags: tags as OpportunityTag[],
   };
 
   return { valid: true, data };
@@ -256,47 +268,51 @@ export function generateCSVTemplate(): string {
     "level",
     "type",
     "duration",
+    "tags",
     "isApproved",
   ];
 
   const sampleRows = [
     [
-      "Summer Internship Program",
-      "Join our summer internship program and gain valuable experience in software development",
+      "CEMC Math Circles",
+      "Mathematics and computer-science enrichment for students in Grades 6-12",
+      "stem_competition",
+      "https://cemc.uwaterloo.ca/workshops/student-workshops/math-circles",
+      "Centre for Education in Mathematics and Computing",
+      "automation@levelupwaterloo.local",
+      "",
+      "both",
+      "hybrid",
+      "medium",
+      "stem,workshop",
+      "false",
+    ],
+    [
+      "Technovation Girls Waterloo",
+      "Technology and entrepreneurship program for girls and gender-diverse youth",
       "extracurricular",
-      "https://example.com/internship",
-      "John Smith",
-      "john@example.com",
-      "2026-06-30",
-      "high_school",
+      "https://uwaterloo.ca/women-in-computer-science/youth-programs/technovation",
+      "University of Waterloo Women in Computer Science",
+      "automation@levelupwaterloo.local",
+      "",
+      "both",
       "hybrid",
       "long",
-      "true",
+      "stem,entrepreneurship,mentorship,competition",
+      "false",
     ],
     [
-      "STEM Competition 2026",
-      "Compete with students from across the region in our annual STEM competition",
-      "stem_competition",
-      "https://example.com/stem",
-      "Jane Doe",
-      "jane@example.com",
-      "2026-05-15",
-      "both",
-      "in_person",
-      "short",
-      "true",
-    ],
-    [
-      "Volunteer at Food Bank",
-      "Help sort and distribute food to families in need",
+      "Volunteer Waterloo Region",
+      "Regional portal for volunteer opportunities from local community organizations",
       "volunteering",
-      "https://example.com/volunteer",
-      "Bob Johnson",
-      "bob@example.com",
-      "2026-12-31",
-      "middle_school",
-      "in_person",
+      "https://volunteerwr.ca/volunteer/",
+      "Volunteer Waterloo Region",
+      "automation@levelupwaterloo.local",
+      "",
+      "both",
+      "hybrid",
       "medium",
+      "volunteering,free",
       "false",
     ],
   ];
@@ -330,6 +346,7 @@ export async function exportToCSV(): Promise<string> {
     "level",
     "type",
     "duration",
+    "tags",
     "createdAt",
     "updatedAt",
   ];
@@ -347,6 +364,7 @@ export async function exportToCSV(): Promise<string> {
     opp.level,
     opp.type,
     opp.duration,
+    `"${(opp.tags ?? []).join(",")}"`,
     opp.createdAt?.toISOString() || "",
     opp.updatedAt?.toISOString() || "",
   ]);

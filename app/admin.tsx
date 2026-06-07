@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert } from "reac
 import { useRouter } from "expo-router";
 import { trpc } from "@/lib/trpc";
 import { ScreenContainer } from "@/components/screen-container";
+import { OPPORTUNITY_TAGS, type OpportunityTag } from "@/shared/opportunity-tags";
 
 type OpportunityFormData = {
   title: string;
@@ -11,6 +12,7 @@ type OpportunityFormData = {
   level: "both" | "middle_school" | "high_school";
   type: "in_person" | "online" | "hybrid";
   duration: "short" | "medium" | "long";
+  tags: OpportunityTag[];
   deadline: string;
   externalLink: string;
   submittedBy: string;
@@ -25,6 +27,7 @@ const INITIAL_FORM_DATA: OpportunityFormData = {
   level: "both",
   type: "in_person",
   duration: "long",
+  tags: [],
   deadline: "",
   externalLink: "",
   submittedBy: "",
@@ -371,6 +374,40 @@ export default function AdminDashboard() {
                         </TouchableOpacity>
                       )
                     )}
+                  </View>
+                </View>
+
+                {/* Tags */}
+                <View>
+                  <Text className="text-sm font-semibold text-foreground mb-2">Tags</Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {OPPORTUNITY_TAGS.map((tag) => {
+                      const selected = formData.tags.includes(tag);
+                      return (
+                        <TouchableOpacity
+                          key={tag}
+                          onPress={() =>
+                            setFormData({
+                              ...formData,
+                              tags: selected
+                                ? formData.tags.filter((item) => item !== tag)
+                                : [...formData.tags, tag],
+                            })
+                          }
+                          className={`px-3 py-2 rounded ${
+                            selected ? "bg-primary" : "bg-surface border border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs font-semibold ${
+                              selected ? "text-background" : "text-foreground"
+                            }`}
+                          >
+                            {tag}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 </View>
 

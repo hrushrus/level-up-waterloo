@@ -585,6 +585,10 @@ Available environment variables:
 | `OWNER_NAME` | Owner's display name |
 | `BUILT_IN_FORGE_API_URL` | Manus API endpoint |
 | `BUILT_IN_FORGE_API_KEY` | Manus API key |
+| `OPPORTUNITY_DISCOVERY_ENABLED` | Set to `true` to run the daily opportunity discovery scheduler |
+| `OPPORTUNITY_DISCOVERY_CRON` | Optional cron expression for discovery; defaults to `0 10 * * *` |
+| `OPPORTUNITY_DISCOVERY_RUN_ON_STARTUP` | Set to `true` to run discovery when the server starts |
+| `OPPORTUNITY_DISCOVERY_AUTO_APPROVE` | Set to `true` only if discovered records should publish without admin review |
 
 Expo runtime variables (prefixed with `EXPO_PUBLIC_`):
 
@@ -593,6 +597,24 @@ Expo runtime variables (prefixed with `EXPO_PUBLIC_`):
 | `EXPO_PUBLIC_APP_ID` | App ID for OAuth |
 | `EXPO_PUBLIC_API_BASE_URL` | API server URL |
 | `EXPO_PUBLIC_OAUTH_PORTAL_URL` | Login portal URL |
+
+### Automated Opportunity Discovery
+
+The backend can crawl a curated list of official Waterloo Region source pages once
+per day and populate new opportunities into the database. The scheduler is off by
+default:
+
+```bash
+OPPORTUNITY_DISCOVERY_ENABLED=true
+OPPORTUNITY_DISCOVERY_CRON="0 10 * * *"
+OPPORTUNITY_DISCOVERY_RUN_ON_STARTUP=false
+OPPORTUNITY_DISCOVERY_AUTO_APPROVE=false
+```
+
+Discovered opportunities are deduplicated by URL or source/title and inserted as
+unapproved records unless `OPPORTUNITY_DISCOVERY_AUTO_APPROVE=true`. Admins can
+manually trigger a run through `admin.runOpportunityDiscovery` and inspect status
+through `admin.getOpportunityDiscoveryStatus`.
 
 ---
 

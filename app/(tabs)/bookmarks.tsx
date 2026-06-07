@@ -45,7 +45,10 @@ export default function BookmarksScreen() {
           <View className="flex-row justify-between items-start mb-2">
             <Text className="text-lg font-semibold text-foreground flex-1">{item.title}</Text>
             <TouchableOpacity
-              onPress={() => toggleBookmark(item.id)}
+              onPress={(event) => {
+                event.stopPropagation();
+                toggleBookmark(item.id);
+              }}
               className="ml-2"
             >
               <Text className="text-xl">❤️</Text>
@@ -65,7 +68,10 @@ export default function BookmarksScreen() {
               <Text className="text-xs font-medium text-primary">{item.duration}</Text>
             </View>
           </View>
-          <TouchableOpacity className="bg-primary px-4 py-2 rounded-lg">
+          <TouchableOpacity
+            onPress={() => router.push(`/opportunity/${item.id}`)}
+            className="bg-primary px-4 py-2 rounded-lg"
+          >
             <Text className="text-white font-semibold text-center">View Details</Text>
           </TouchableOpacity>
         </View>

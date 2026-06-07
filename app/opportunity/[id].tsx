@@ -14,6 +14,7 @@ interface Opportunity {
   level: string;
   type: string;
   duration: string;
+  tags: string[] | null;
   deadline: Date | null;
   submittedBy: string;
 }
@@ -164,6 +165,15 @@ export default function OpportunityDetailScreen() {
                 </Text>
               </View>
             </View>
+            {(opportunity.tags ?? []).length > 0 && (
+              <View className="flex-row flex-wrap gap-2 pt-2 border-t border-border">
+                {(opportunity.tags ?? []).map((tag) => (
+                  <View key={tag} className="bg-primary/10 px-3 py-1 rounded-full">
+                    <Text className="text-xs font-medium text-primary">{tag}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
 
           {/* Deadline */}

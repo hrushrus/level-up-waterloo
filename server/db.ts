@@ -188,6 +188,7 @@ export interface FilterParams {
   levels?: string[];
   types?: string[];
   durations?: string[];
+  tags?: string[];
   sortBy?: "newest" | "deadline" | "relevance";
 }
 
@@ -232,6 +233,16 @@ export async function filterOpportunities(params: FilterParams): Promise<Opportu
     // Duration filter
     if (params.durations && params.durations.length > 0) {
       conditions.push(inArray(opportunities.duration, params.durations as any));
+    }
+
+    if (params.tags && params.tags.length > 0) {
+      conditions.push(
+        or(
+          ...params.tags.map(
+            (tag) => like(opportunities.tags as any, `%"${tag}"%`),
+          ),
+        ),
+      );
     }
 
     // Deadline range filter

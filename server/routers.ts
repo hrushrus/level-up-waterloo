@@ -55,6 +55,7 @@ export const appRouter = router({
           levels: z.array(z.string()).optional(),
           types: z.array(z.string()).optional(),
           durations: z.array(z.string()).optional(),
+          tags: z.array(z.string()).optional(),
           sortBy: z.enum(["newest", "deadline", "relevance"]).optional(),
         })
       )

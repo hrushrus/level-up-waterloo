@@ -2,6 +2,7 @@ import { router, adminProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { importFromCSV, importFromArray, generateCSVTemplate, exportToCSV } from "../utils/import-opportunities";
 import type { OpportunityImportRow } from "../utils/import-opportunities";
+import { OPPORTUNITY_TAGS } from "../../shared/opportunity-tags";
 
 /**
  * Admin router for importing opportunities
@@ -40,6 +41,7 @@ export const importRouter = router({
             level: z.enum(["both", "middle_school", "high_school"]).optional(),
             type: z.enum(["in_person", "online", "hybrid"]).optional(),
             duration: z.enum(["short", "medium", "long"]).optional(),
+            tags: z.array(z.enum(OPPORTUNITY_TAGS)).optional(),
             isApproved: z.boolean().optional(),
           })
         ),
