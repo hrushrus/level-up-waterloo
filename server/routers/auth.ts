@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "@/server/_core/trpc";
+import { publicProcedure, router } from "../_core/trpc";
 import {
   createUser,
   authenticateUser,
@@ -15,8 +15,8 @@ import {
   verifySecurityQuestions,
   getSecurityQuestions,
   hasSecurityQuestions,
-} from "@/server/services/auth-service";
-import { COOKIE_NAME } from "@/shared/const";
+} from "../services/auth-service";
+import { COOKIE_NAME } from "../../shared/const";
 
 /**
  * Authentication router for email/password signup, login, and profile management

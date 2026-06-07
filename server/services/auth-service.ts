@@ -1,7 +1,7 @@
 import { hash, compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
-import { getDb } from "@/server/db";
-import { users, type User } from "@/drizzle/schema";
+import { getDb } from "../db";
+import { users, type User } from "../../drizzle/schema";
 
 const SALT_ROUNDS = 10;
 
