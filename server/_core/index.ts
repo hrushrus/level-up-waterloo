@@ -48,11 +48,12 @@ async function startServer() {
 
     if (allowOrigin) {
       res.header("Access-Control-Allow-Origin", origin);
+      res.header("Vary", "Origin");
     }
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header(
       "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization, Trpc-Accept",
     );
     res.header("Access-Control-Allow-Credentials", "true");
 
