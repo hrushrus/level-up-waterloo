@@ -589,6 +589,7 @@ Available environment variables:
 | `OPPORTUNITY_DISCOVERY_CRON` | Optional cron expression for discovery; defaults to `0 10 * * *` |
 | `OPPORTUNITY_DISCOVERY_RUN_ON_STARTUP` | Set to `true` to run discovery when the server starts |
 | `OPPORTUNITY_DISCOVERY_AUTO_APPROVE` | Set to `true` only if discovered records should publish without admin review |
+| `CORS_ORIGINS` | Comma-separated frontend origins allowed to call the production API |
 
 Expo runtime variables (prefixed with `EXPO_PUBLIC_`):
 

@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { ENV } from "./env";
 import { initExpirationScheduler } from "../schedulers/expiration-scheduler";
 import { startOpportunityDiscoveryScheduler } from "../schedulers/opportunity-discovery-scheduler";
 import { startReminderScheduler } from "../schedulers/reminder-scheduler";
@@ -32,11 +33,20 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  const allowedOrigins = (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
-  // Enable CORS for all routes - reflect the request origin to support credentials
   app.use((req, res, next) => {
     const origin = req.headers.origin;
-    if (origin) {
+    const allowOrigin =
+      origin &&
+      (!ENV.isProduction ||
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.includes("*"));
+
+    if (allowOrigin) {
       res.header("Access-Control-Allow-Origin", origin);
     }
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -48,7 +58,11 @@ async function startServer() {
 
     // Handle preflight requests
     if (req.method === "OPTIONS") {
-      res.sendStatus(200);
+      if (origin && !allowOrigin) {
+        res.sendStatus(403);
+        return;
+      }
+      res.sendStatus(204);
       return;
     }
     next();
