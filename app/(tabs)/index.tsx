@@ -1,12 +1,10 @@
 import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator, Image, TextInput } from "react-native";
 import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
-import { trpc } from "@/lib/trpc";
 import { useRouter } from "expo-router";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { OPPORTUNITY_TAGS, type OpportunityTag } from "@/shared/opportunity-tags";
 import { useQuery } from "@tanstack/react-query";
-import { Platform } from "react-native";
 import { fetchOpportunities } from "@/lib/opportunities-api";
 
 const CATEGORIES = [
@@ -71,41 +69,20 @@ export default function HomeScreen() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   // Fetch all opportunities
-  const webOpportunities = trpc.opportunities.list.useQuery(undefined, {
-    enabled: Platform.OS === "web",
-  });
-  const nativeOpportunities = useQuery<Opportunity[]>({
-    queryKey: ["native-opportunities"],
-    queryFn: fetchOpportunities,
-    enabled: Platform.OS !== "web",
-  });
   const {
     data: allOpps,
     isLoading: allOppsLoading,
     error: allOppsError,
     refetch: refetchAllOpps,
-  } = Platform.OS === "web" ? webOpportunities : nativeOpportunities;
-
-  // Fetch opportunities by category
-  const {
-    data: categoryOpps,
-    isLoading: categoryOppsLoading,
-    error: categoryOppsError,
-    refetch: refetchCategoryOpps,
-  } = trpc.opportunities.byCategory.useQuery(
-    { category: selectedCategory },
-    {
-      enabled:
-        Platform.OS === "web" &&
-        selectedCategory !== "all" &&
-        selectedCategory !== "closing_soon",
-    },
-  );
-  const queryError = allOppsError ?? categoryOppsError;
+  } = useQuery<Opportunity[]>({
+    queryKey: ["opportunities"],
+    queryFn: fetchOpportunities,
+  });
+  const queryError = allOppsError;
 
   useEffect(() => {
-    setLoading(allOppsLoading || categoryOppsLoading);
-  }, [allOppsLoading, categoryOppsLoading]);
+    setLoading(allOppsLoading);
+  }, [allOppsLoading]);
 
   // Filter and sort opportunities
   const filteredAndSorted = useMemo(() => {
@@ -121,8 +98,6 @@ export default function HomeScreen() {
         const deadline = new Date(opp.deadline);
         return deadline <= thirtyDaysFromNow && deadline > new Date();
       });
-    } else if (Platform.OS === "web" && categoryOpps) {
-      filtered = categoryOpps;
     } else if (allOpps) {
       filtered = allOpps.filter((opp) => opp.category === selectedCategory);
     }
@@ -173,7 +148,7 @@ export default function HomeScreen() {
     }
 
     return sorted;
-  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, selectedTags, sortBy, searchQuery, allOpps, categoryOpps]);
+  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, selectedTags, sortBy, searchQuery, allOpps]);
 
   useEffect(() => {
     setOpportunities(filteredAndSorted);
@@ -543,9 +518,6 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   onPress={() => {
                     void refetchAllOpps();
-                    if (selectedCategory !== "all" && selectedCategory !== "closing_soon") {
-                      void refetchCategoryOpps();
-                    }
                   }}
                   className="bg-primary px-5 py-2 rounded-lg"
                 >

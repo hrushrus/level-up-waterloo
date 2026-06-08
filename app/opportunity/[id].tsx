@@ -1,10 +1,8 @@
 import { ScrollView, Text, View, TouchableOpacity, ActivityIndicator, Linking, Share } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
-import { trpc } from "@/lib/trpc";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useEffect, useState } from "react";
-import { Platform } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunity } from "@/lib/opportunities-api";
 
@@ -31,17 +29,11 @@ export default function OpportunityDetailScreen() {
   const opportunityId = typeof id === "string" ? parseInt(id, 10) : 0;
 
   // Fetch opportunity details
-  const webOpportunity = trpc.opportunities.byId.useQuery(
-    { id: opportunityId },
-    { enabled: Platform.OS === "web" && opportunityId > 0 }
-  );
-  const nativeOpportunity = useQuery<Opportunity>({
-    queryKey: ["native-opportunity", opportunityId],
+  const { data: opp, isLoading } = useQuery<Opportunity>({
+    queryKey: ["opportunity", opportunityId],
     queryFn: () => fetchOpportunity(opportunityId),
-    enabled: Platform.OS !== "web" && opportunityId > 0,
+    enabled: opportunityId > 0,
   });
-  const { data: opp, isLoading } =
-    Platform.OS === "web" ? webOpportunity : nativeOpportunity;
 
   useEffect(() => {
     if (opp) {
