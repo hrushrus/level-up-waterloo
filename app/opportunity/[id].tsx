@@ -4,6 +4,9 @@ import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useEffect, useState } from "react";
+import { Platform } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { fetchOpportunity } from "@/lib/opportunities-api";
 
 interface Opportunity {
   id: number;
@@ -28,10 +31,17 @@ export default function OpportunityDetailScreen() {
   const opportunityId = typeof id === "string" ? parseInt(id, 10) : 0;
 
   // Fetch opportunity details
-  const { data: opp, isLoading } = trpc.opportunities.byId.useQuery(
+  const webOpportunity = trpc.opportunities.byId.useQuery(
     { id: opportunityId },
-    { enabled: opportunityId > 0 }
+    { enabled: Platform.OS === "web" && opportunityId > 0 }
   );
+  const nativeOpportunity = useQuery<Opportunity>({
+    queryKey: ["native-opportunity", opportunityId],
+    queryFn: () => fetchOpportunity(opportunityId),
+    enabled: Platform.OS !== "web" && opportunityId > 0,
+  });
+  const { data: opp, isLoading } =
+    Platform.OS === "web" ? webOpportunity : nativeOpportunity;
 
   useEffect(() => {
     if (opp) {

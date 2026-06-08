@@ -10,6 +10,7 @@ import { ENV } from "./env";
 import { initExpirationScheduler } from "../schedulers/expiration-scheduler";
 import { startOpportunityDiscoveryScheduler } from "../schedulers/opportunity-discovery-scheduler";
 import { startReminderScheduler } from "../schedulers/reminder-scheduler";
+import { getAllOpportunities, getOpportunityById } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -76,6 +77,26 @@ async function startServer() {
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
+  });
+
+  app.get("/api/opportunities", async (_req, res) => {
+    res.json(await getAllOpportunities());
+  });
+
+  app.get("/api/opportunities/:id", async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({ error: "Invalid opportunity ID" });
+      return;
+    }
+
+    const opportunity = await getOpportunityById(id);
+    if (!opportunity) {
+      res.status(404).json({ error: "Opportunity not found" });
+      return;
+    }
+
+    res.json(opportunity);
   });
 
   app.use(

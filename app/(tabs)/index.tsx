@@ -5,6 +5,9 @@ import { trpc } from "@/lib/trpc";
 import { useRouter } from "expo-router";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { OPPORTUNITY_TAGS, type OpportunityTag } from "@/shared/opportunity-tags";
+import { useQuery } from "@tanstack/react-query";
+import { Platform } from "react-native";
+import { fetchOpportunities } from "@/lib/opportunities-api";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -68,12 +71,20 @@ export default function HomeScreen() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   // Fetch all opportunities
+  const webOpportunities = trpc.opportunities.list.useQuery(undefined, {
+    enabled: Platform.OS === "web",
+  });
+  const nativeOpportunities = useQuery<Opportunity[]>({
+    queryKey: ["native-opportunities"],
+    queryFn: fetchOpportunities,
+    enabled: Platform.OS !== "web",
+  });
   const {
     data: allOpps,
     isLoading: allOppsLoading,
     error: allOppsError,
     refetch: refetchAllOpps,
-  } = trpc.opportunities.list.useQuery();
+  } = Platform.OS === "web" ? webOpportunities : nativeOpportunities;
 
   // Fetch opportunities by category
   const {
@@ -83,7 +94,12 @@ export default function HomeScreen() {
     refetch: refetchCategoryOpps,
   } = trpc.opportunities.byCategory.useQuery(
     { category: selectedCategory },
-    { enabled: selectedCategory !== "all" && selectedCategory !== "closing_soon" },
+    {
+      enabled:
+        Platform.OS === "web" &&
+        selectedCategory !== "all" &&
+        selectedCategory !== "closing_soon",
+    },
   );
   const queryError = allOppsError ?? categoryOppsError;
 
@@ -105,8 +121,10 @@ export default function HomeScreen() {
         const deadline = new Date(opp.deadline);
         return deadline <= thirtyDaysFromNow && deadline > new Date();
       });
-    } else if (categoryOpps) {
+    } else if (Platform.OS === "web" && categoryOpps) {
       filtered = categoryOpps;
+    } else if (allOpps) {
+      filtered = allOpps.filter((opp) => opp.category === selectedCategory);
     }
 
     // Apply search filter
