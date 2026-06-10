@@ -220,6 +220,7 @@ export default function HomeScreen() {
               <Text className="text-base text-muted text-center">
                 Discover opportunities for students in the Waterloo region
               </Text>
+              <View className="h-[1px] bg-border w-full mt-2" />
             </View>
           </View>
 

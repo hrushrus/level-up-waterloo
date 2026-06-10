@@ -181,6 +181,7 @@ export default function HomeScreen() {
             <Text className="text-base text-muted">
               Discover opportunities for students in the Waterloo region
             </Text>
+            <View className="h-[1px] bg-border w-full mt-2" />
           </View>
 
           {/* Category Filter */}
