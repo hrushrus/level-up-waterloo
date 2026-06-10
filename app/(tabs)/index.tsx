@@ -215,12 +215,12 @@ export default function HomeScreen() {
               style={{ width: 128, height: 128 }}
               resizeMode="contain"
             />
-            <View className="gap-2 items-center">
+            <View className="gap-2 items-center w-full">
               <Text className="text-3xl font-bold text-foreground">LevelUp Waterloo</Text>
               <Text className="text-base text-muted text-center">
                 Discover opportunities for students in the Waterloo region
               </Text>
-              <View className="h-[1px] bg-border w-full mt-2" />
+              <View className="h-[1px] bg-border mt-2" style={{ width: "100%" }} />
             </View>
           </View>
 
