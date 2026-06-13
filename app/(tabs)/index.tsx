@@ -1,9 +1,21 @@
-import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator, Image, TextInput } from "react-native";
+import {
+  ScrollView,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Image,
+  TextInput,
+} from "react-native";
 import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useRouter } from "expo-router";
 import { useBookmarks } from "@/lib/bookmark-context";
-import { OPPORTUNITY_TAGS, type OpportunityTag } from "@/shared/opportunity-tags";
+import {
+  OPPORTUNITY_TAGS,
+  type OpportunityTag,
+} from "@/shared/opportunity-tags";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunities } from "@/lib/opportunities-api";
 
@@ -105,16 +117,19 @@ export default function HomeScreen() {
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((opp) =>
-        opp.title.toLowerCase().includes(query) ||
-        opp.description.toLowerCase().includes(query) ||
-        (opp.tags ?? []).some((tag) => tag.includes(query))
+      filtered = filtered.filter(
+        (opp) =>
+          opp.title.toLowerCase().includes(query) ||
+          opp.description.toLowerCase().includes(query) ||
+          (opp.tags ?? []).some((tag) => tag.includes(query)),
       );
     }
 
     // Apply level filter
     if (selectedLevel !== "both") {
-      filtered = filtered.filter((opp) => opp.level === selectedLevel || opp.level === "both");
+      filtered = filtered.filter(
+        (opp) => opp.level === selectedLevel || opp.level === "both",
+      );
     }
 
     // Apply type filter
@@ -129,7 +144,7 @@ export default function HomeScreen() {
 
     if (selectedTags.length > 0) {
       filtered = filtered.filter((opp) =>
-        selectedTags.some((tag) => (opp.tags ?? []).includes(tag))
+        selectedTags.some((tag) => (opp.tags ?? []).includes(tag)),
       );
     }
 
@@ -137,8 +152,12 @@ export default function HomeScreen() {
     const sorted = [...filtered];
     if (sortBy === "deadline") {
       sorted.sort((a, b) => {
-        const aDeadline = a.deadline ? new Date(a.deadline).getTime() : Infinity;
-        const bDeadline = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        const aDeadline = a.deadline
+          ? new Date(a.deadline).getTime()
+          : Infinity;
+        const bDeadline = b.deadline
+          ? new Date(b.deadline).getTime()
+          : Infinity;
         return aDeadline - bDeadline;
       });
     } else if (sortBy === "alphabetical") {
@@ -148,7 +167,16 @@ export default function HomeScreen() {
     }
 
     return sorted;
-  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, selectedTags, sortBy, searchQuery, allOpps]);
+  }, [
+    selectedCategory,
+    selectedLevel,
+    selectedType,
+    selectedDuration,
+    selectedTags,
+    sortBy,
+    searchQuery,
+    allOpps,
+  ]);
 
   useEffect(() => {
     setOpportunities(filteredAndSorted);
@@ -163,7 +191,9 @@ export default function HomeScreen() {
       >
         <View className="bg-surface rounded-lg p-4 mb-3 border border-border">
           <View className="flex-row justify-between items-start mb-2">
-            <Text className="text-lg font-semibold text-foreground flex-1">{item.title}</Text>
+            <Text className="text-lg font-semibold text-foreground flex-1">
+              {item.title}
+            </Text>
             <TouchableOpacity
               onPress={(event) => {
                 event.stopPropagation();
@@ -174,18 +204,27 @@ export default function HomeScreen() {
               <Text className="text-xl">{isBookmarkedState ? "❤️" : "🤍"}</Text>
             </TouchableOpacity>
           </View>
-          <Text className="text-sm text-muted mb-3 leading-relaxed" numberOfLines={2}>
+          <Text
+            className="text-sm text-muted mb-3 leading-relaxed"
+            numberOfLines={2}
+          >
             {item.description}
           </Text>
           <View className="flex-row gap-2 mb-3 flex-wrap">
             <View className="bg-primary/10 px-3 py-1 rounded-full">
-              <Text className="text-xs font-medium text-primary">{item.level}</Text>
+              <Text className="text-xs font-medium text-primary">
+                {item.level}
+              </Text>
             </View>
             <View className="bg-primary/10 px-3 py-1 rounded-full">
-              <Text className="text-xs font-medium text-primary">{item.type}</Text>
+              <Text className="text-xs font-medium text-primary">
+                {item.type}
+              </Text>
             </View>
             <View className="bg-primary/10 px-3 py-1 rounded-full">
-              <Text className="text-xs font-medium text-primary">{item.duration}</Text>
+              <Text className="text-xs font-medium text-primary">
+                {item.duration}
+              </Text>
             </View>
             {(item.tags ?? []).slice(0, 4).map((tag) => (
               <View key={tag} className="bg-primary/5 px-3 py-1 rounded-full">
@@ -197,7 +236,9 @@ export default function HomeScreen() {
             onPress={() => router.push(`/opportunity/${item.id}`)}
             className="bg-primary px-4 py-2 rounded-lg"
           >
-            <Text className="text-white font-semibold text-center">View Details</Text>
+            <Text className="text-white font-semibold text-center">
+              View Details
+            </Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -206,21 +247,39 @@ export default function HomeScreen() {
 
   return (
     <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View className="gap-4">
           {/* Header with Logo */}
           <View className="gap-3 items-center mb-2">
-            <Image
-              source={require("@/assets/images/icon.png")}
-              style={{ width: 128, height: 128 }}
-              resizeMode="contain"
-            />
+            <View
+              style={{
+                borderWidth: 4,
+                borderColor: "#FBBF24",
+                borderRadius: 16,
+                padding: 4,
+                backgroundColor: "#ffffff",
+              }}
+            >
+              <Image
+                source={require("@/assets/images/icon.png")}
+                style={{ width: 120, height: 120 }}
+                resizeMode="contain"
+              />
+            </View>
             <View className="gap-2 items-center w-full">
-              <Text className="text-3xl font-bold text-foreground">LevelUp Waterloo</Text>
+              <Text className="text-3xl font-bold text-foreground">
+                LevelUp Waterloo
+              </Text>
               <Text className="text-base text-muted text-center">
                 Discover opportunities for students in the Waterloo region
               </Text>
-              <View className="h-[1px] bg-border mt-2" style={{ width: "100%" }} />
+              <View
+                className="h-[1px] bg-border mt-2"
+                style={{ width: "100%" }}
+              />
             </View>
           </View>
 
@@ -235,7 +294,10 @@ export default function HomeScreen() {
               className="text-foreground flex-1"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} className="ml-2">
+              <TouchableOpacity
+                onPress={() => setSearchQuery("")}
+                className="ml-2"
+              >
                 <Text className="text-muted text-lg">✕</Text>
               </TouchableOpacity>
             )}
@@ -243,8 +305,14 @@ export default function HomeScreen() {
 
           {/* Category Filter */}
           <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Categories</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="gap-2">
+            <Text className="text-lg font-semibold text-foreground">
+              Categories
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="gap-2"
+            >
               <View className="flex-row gap-2">
                 {CATEGORIES.map((category) => (
                   <TouchableOpacity
@@ -300,8 +368,13 @@ export default function HomeScreen() {
                   </View>
                 )}
                 {selectedTags.map((tag) => (
-                  <View key={tag} className="bg-primary/20 px-3 py-1 rounded-full">
-                    <Text className="text-xs font-medium text-primary">{tag}</Text>
+                  <View
+                    key={tag}
+                    className="bg-primary/20 px-3 py-1 rounded-full"
+                  >
+                    <Text className="text-xs font-medium text-primary">
+                      {tag}
+                    </Text>
                   </View>
                 ))}
                 <TouchableOpacity
@@ -313,7 +386,9 @@ export default function HomeScreen() {
                   }}
                   className="ml-auto"
                 >
-                  <Text className="text-xs font-semibold text-primary underline">Clear All</Text>
+                  <Text className="text-xs font-semibold text-primary underline">
+                    Clear All
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -330,11 +405,24 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setSortBy(sortBy === "newest" ? "deadline" : sortBy === "deadline" ? "alphabetical" : "newest")}
+              onPress={() =>
+                setSortBy(
+                  sortBy === "newest"
+                    ? "deadline"
+                    : sortBy === "deadline"
+                      ? "alphabetical"
+                      : "newest",
+                )
+              }
               className="flex-1 bg-surface border border-border px-4 py-2 rounded-lg items-center"
             >
               <Text className="text-foreground font-semibold text-xs text-center">
-                Sort: {sortBy === "newest" ? "Newest" : sortBy === "deadline" ? "Deadline" : "A-Z"}
+                Sort:{" "}
+                {sortBy === "newest"
+                  ? "Newest"
+                  : sortBy === "deadline"
+                    ? "Deadline"
+                    : "A-Z"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -344,7 +432,9 @@ export default function HomeScreen() {
             <View className="bg-surface rounded-lg p-4 border border-border gap-3">
               {/* Level Filter */}
               <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">Level</Text>
+                <Text className="text-sm font-semibold text-foreground">
+                  Level
+                </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {LEVELS.map((level) => (
                     <TouchableOpacity
@@ -372,7 +462,9 @@ export default function HomeScreen() {
 
               {/* Type Filter */}
               <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">Type</Text>
+                <Text className="text-sm font-semibold text-foreground">
+                  Type
+                </Text>
                 <View className="flex-row flex-wrap gap-2">
                   <TouchableOpacity
                     onPress={() => setSelectedType(null)}
@@ -384,9 +476,7 @@ export default function HomeScreen() {
                   >
                     <Text
                       className={`text-xs font-medium ${
-                        selectedType === null
-                          ? "text-white"
-                          : "text-foreground"
+                        selectedType === null ? "text-white" : "text-foreground"
                       }`}
                     >
                       All Types
@@ -418,7 +508,9 @@ export default function HomeScreen() {
 
               {/* Duration Filter */}
               <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">Duration</Text>
+                <Text className="text-sm font-semibold text-foreground">
+                  Duration
+                </Text>
                 <View className="flex-row flex-wrap gap-2">
                   <TouchableOpacity
                     onPress={() => setSelectedDuration(null)}
@@ -464,7 +556,9 @@ export default function HomeScreen() {
 
               {/* Tag Filter */}
               <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">Tags</Text>
+                <Text className="text-sm font-semibold text-foreground">
+                  Tags
+                </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {OPPORTUNITY_TAGS.map((tag) => {
                     const selected = selectedTags.includes(tag);
@@ -475,11 +569,13 @@ export default function HomeScreen() {
                           setSelectedTags(
                             selected
                               ? selectedTags.filter((item) => item !== tag)
-                              : [...selectedTags, tag]
+                              : [...selectedTags, tag],
                           )
                         }
                         className={`px-3 py-1 rounded-full ${
-                          selected ? "bg-primary" : "bg-background border border-border"
+                          selected
+                            ? "bg-primary"
+                            : "bg-background border border-border"
                         }`}
                       >
                         <Text
@@ -503,8 +599,8 @@ export default function HomeScreen() {
               {selectedCategory === "all"
                 ? "All Opportunities"
                 : selectedCategory === "closing_soon"
-                ? "Closing Soon"
-                : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Opportunities`}
+                  ? "Closing Soon"
+                  : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Opportunities`}
               {opportunities.length > 0 && ` (${opportunities.length})`}
             </Text>
             {loading ? (
