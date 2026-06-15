@@ -28,6 +28,7 @@ export const adminRouter = router({
           "stem_competition",
           "sports",
           "volunteering",
+          "experiential_learning",
           "other",
         ]),
         level: z.enum(["both", "middle_school", "high_school"]).default("both"),
@@ -101,6 +102,7 @@ export const adminRouter = router({
             "stem_competition",
             "sports",
             "volunteering",
+            "experiential_learning",
             "other",
           ])
           .optional(),

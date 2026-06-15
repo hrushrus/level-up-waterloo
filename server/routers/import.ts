@@ -33,7 +33,7 @@ export const importRouter = router({
           z.object({
             title: z.string(),
             description: z.string(),
-            category: z.enum(["extracurricular", "grant", "stem_competition", "sports", "volunteering", "other"]),
+            category: z.enum(["extracurricular", "grant", "stem_competition", "sports", "volunteering", "experiential_learning", "other"]),
             externalLink: z.string().optional(),
             submittedBy: z.string(),
             submitterEmail: z.string().email(),

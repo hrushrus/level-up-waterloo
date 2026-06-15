@@ -23,6 +23,7 @@ const CATEGORIES = [
   { id: "all", label: "All" },
   { id: "closing_soon", label: "Closing Soon" },
   { id: "extracurricular", label: "Extracurricular" },
+  { id: "experiential_learning", label: "Experiential Learning" },
   { id: "sports", label: "Sports" },
   { id: "volunteering", label: "Volunteering" },
   { id: "grant", label: "Grants" },

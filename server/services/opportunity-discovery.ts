@@ -10,6 +10,7 @@ export type OpportunityCategory =
   | "stem_competition"
   | "sports"
   | "volunteering"
+  | "experiential_learning"
   | "other";
 
 type Level = "both" | "middle_school" | "high_school";
@@ -166,6 +167,18 @@ export const DEFAULT_DISCOVERY_SOURCES: DiscoverySource[] = [
     fallbackDescription:
       "City youth programs covering leadership, arts, sports, drop-ins, summer programs and special events.",
     tags: ["leadership", "sports", "camp", "summer"],
+  },
+  {
+    id: "bep-waterloo",
+    name: "Business and Education Partnership of Waterloo Region",
+    url: "https://www.bepwr.ca/youth-and-families",
+    category: "experiential_learning",
+    level: "both",
+    type: "in_person",
+    duration: "short",
+    fallbackDescription:
+      "Sector-focused career exploration events, guest speakers, and workplace learning programs connecting youth with local employers.",
+    tags: ["career", "workshop"],
   },
 ];
 

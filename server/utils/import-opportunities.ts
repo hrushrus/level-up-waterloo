@@ -11,7 +11,7 @@ import { isOpportunityTag, type OpportunityTag } from "../../shared/opportunity-
 export interface OpportunityImportRow {
   title: string;
   description: string;
-  category: "extracurricular" | "grant" | "stem_competition" | "sports" | "volunteering" | "other";
+  category: "extracurricular" | "grant" | "stem_competition" | "sports" | "volunteering" | "experiential_learning" | "other";
   externalLink?: string;
   submittedBy: string;
   submitterEmail: string;
@@ -55,7 +55,7 @@ function validateOpportunity(row: OpportunityImportRow, rowNumber: number): { va
   }
 
   // Validate category
-  const validCategories = ["extracurricular", "grant", "stem_competition", "sports", "volunteering", "other"];
+  const validCategories = ["extracurricular", "grant", "stem_competition", "sports", "volunteering", "experiential_learning", "other"];
   if (row.category && !validCategories.includes(row.category)) {
     errors.push(`Invalid category: ${row.category}`);
   }

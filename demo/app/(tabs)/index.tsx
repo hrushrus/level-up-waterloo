@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator, Image, TextInput } from "react-native";
 import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
@@ -62,6 +62,7 @@ export default function HomeScreen() {
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("newest");
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,13 +89,22 @@ export default function HomeScreen() {
     } else if (selectedCategory === "closing_soon" && allOpps) {
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-      filtered = allOpps.filter((opp) => {
+      filtered = allOpps.filter((opp: Opportunity) => {
         if (!opp.deadline) return false;
         const deadline = new Date(opp.deadline);
         return deadline <= thirtyDaysFromNow && deadline > new Date();
       });
     } else if (categoryOpps) {
       filtered = categoryOpps;
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((opp) =>
+        opp.title.toLowerCase().includes(query) ||
+        opp.description.toLowerCase().includes(query)
+      );
     }
 
     // Apply level filter
@@ -127,7 +137,7 @@ export default function HomeScreen() {
     }
 
     return sorted;
-  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, sortBy, allOpps, categoryOpps]);
+  }, [selectedCategory, selectedLevel, selectedType, selectedDuration, sortBy, searchQuery, allOpps, categoryOpps]);
 
   useEffect(() => {
     setOpportunities(filteredAndSorted);
@@ -176,13 +186,36 @@ export default function HomeScreen() {
     <ScreenContainer className="p-4">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         <View className="gap-4">
-          {/* Header */}
-          <View className="gap-2">
-            <Text className="text-3xl font-bold text-foreground">LevelUp Waterloo</Text>
-            <Text className="text-base text-muted">
-              Discover opportunities for students in the Waterloo region
-            </Text>
-            <View className="h-[1px] bg-border mt-2" style={{ width: "100%" }} />
+          {/* Header with Logo */}
+          <View className="gap-3 items-center mb-2">
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 80, height: 80 }}
+              resizeMode="contain"
+            />
+            <View className="gap-2 items-center">
+              <Text className="text-3xl font-bold text-foreground">LevelUp Waterloo</Text>
+              <Text className="text-base text-muted text-center">
+                Discover opportunities for students in the Waterloo region
+              </Text>
+            </View>
+          </View>
+
+          {/* Search Bar */}
+          <View className="bg-surface rounded-lg border border-border px-4 py-3 flex-row items-center">
+            <Text className="text-muted mr-2">🔍</Text>
+            <TextInput
+              placeholder="Search opportunities..."
+              placeholderTextColor="#687076"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              className="text-foreground flex-1"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")} className="ml-2">
+                <Text className="text-muted text-lg">✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Category Filter */}
@@ -214,6 +247,45 @@ export default function HomeScreen() {
               </View>
             </ScrollView>
           </View>
+
+          {/* Active Filters Display */}
+          {(selectedLevel !== "both" || selectedType !== null || selectedDuration !== null) && (
+            <View className="gap-2">
+              <View className="flex-row flex-wrap gap-2 items-center">
+                {selectedLevel !== "both" && (
+                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
+                    <Text className="text-xs font-medium text-primary">
+                      {LEVELS.find((l) => l.id === selectedLevel)?.label}
+                    </Text>
+                  </View>
+                )}
+                {selectedType !== null && (
+                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
+                    <Text className="text-xs font-medium text-primary">
+                      {TYPES.find((t) => t.id === selectedType)?.label}
+                    </Text>
+                  </View>
+                )}
+                {selectedDuration !== null && (
+                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
+                    <Text className="text-xs font-medium text-primary">
+                      {DURATIONS.find((d) => d.id === selectedDuration)?.label}
+                    </Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedLevel("both");
+                    setSelectedType(null);
+                    setSelectedDuration(null);
+                  }}
+                  className="ml-auto"
+                >
+                  <Text className="text-xs font-semibold text-primary underline">Clear All</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
 
           {/* Filter and Sort Controls */}
           <View className="flex-row gap-2">
