@@ -78,4 +78,14 @@ The root-level `pnpm dev` uses `server/_core/index.ts` as the backend entry poin
 
 ### Category enums
 
-Shared across `opportunities`, `submissions`, and `userInterests` tables: `extracurricular`, `grant`, `stem_competition`, `sports`, `volunteering`, `other`. Adding a category requires updating all three table definitions in `drizzle/schema.ts`.
+Shared across `opportunities`, `submissions`, and `userInterests` tables: `extracurricular`, `grant`, `stem_competition`, `sports`, `volunteering`, `experiential_learning`, `other`. Adding a category requires updating all three table definitions in `drizzle/schema.ts`.
+
+## Deployment Guidelines
+
+- **Backend**: Pushing changes to the `main` branch of the GitHub repository automatically triggers backend deployments (Render / Railway).
+- **Frontend Web**: Always run build/deploy commands from the local Linux filesystem (`~/level-up-waterloo`), as ChromeOS Google Drive mounts do not support symlinks and throw `EACCES` permissions errors.
+- **Web Deploy Commands**:
+  ```bash
+  npx expo export --platform web --clear
+  pnpm deploy:web
+  ```
