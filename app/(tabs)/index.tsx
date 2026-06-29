@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Image,
   TextInput,
+  Linking,
 } from "react-native";
 import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
@@ -623,12 +624,13 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             ) : opportunities.length > 0 ? (
-              <FlatList
-                data={opportunities}
-                renderItem={renderOpportunityCard}
-                keyExtractor={(item) => item.id.toString()}
-                scrollEnabled={false}
-              />
+              <View className="gap-3">
+                {opportunities.map((item) => (
+                  <View key={item.id}>
+                    {renderOpportunityCard({ item })}
+                  </View>
+                ))}
+              </View>
             ) : (
               <View className="items-center justify-center py-8">
                 <Text className="text-muted text-center">
@@ -636,6 +638,23 @@ export default function HomeScreen() {
                 </Text>
               </View>
             )}
+          </View>
+
+          {/* Youth Creativity Fund Footer */}
+          <View className="items-center justify-center py-10 mt-6 border-t border-border">
+            <Text className="text-sm text-muted mb-3">Supported by the</Text>
+            <TouchableOpacity 
+              onPress={() => Linking.openURL('https://youthcreativityfund.ca/')}
+              className="items-center"
+              activeOpacity={0.7}
+            >
+              <Text className="text-lg font-bold text-primary mb-3">Youth Creativity Fund</Text>
+              <Image 
+                source={require("@/assets/images/youth-creativity-fund.svg")}
+                style={{ width: 180, height: 60 }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

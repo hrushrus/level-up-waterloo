@@ -1,0 +1,3 @@
+ALTER TABLE `opportunities` MODIFY COLUMN `category` enum('extracurricular','grant','stem_competition','sports','volunteering','experiential_learning','other') NOT NULL;--> statement-breakpoint
+ALTER TABLE `submissions` MODIFY COLUMN `category` enum('extracurricular','grant','stem_competition','sports','volunteering','experiential_learning','other') NOT NULL;--> statement-breakpoint
+ALTER TABLE `userInterests` MODIFY COLUMN `category` enum('extracurricular','grant','stem_competition','sports','volunteering','experiential_learning','other') NOT NULL;
