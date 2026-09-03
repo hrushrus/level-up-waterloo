@@ -243,7 +243,7 @@ export const DEFAULT_DISCOVERY_SOURCES: DiscoverySource[] = [
   {
     id: "rare-environmental-youth-network",
     name: "rare Environmental Youth Network",
-    url: "https://www.raresites.org/programs/education/environmental-youth-network",
+    url: "https://www.raresites.org/",
     category: "extracurricular",
     level: "high_school",
     type: "in_person",
@@ -279,7 +279,7 @@ export const DEFAULT_DISCOVERY_SOURCES: DiscoverySource[] = [
   {
     id: "kwag-programs",
     name: "Kitchener-Waterloo Art Gallery Youth Programs",
-    url: "https://kwag.ca/programs",
+    url: "https://kwag.ca/",
     category: "extracurricular",
     level: "both",
     type: "in_person",
