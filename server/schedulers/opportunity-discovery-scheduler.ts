@@ -7,7 +7,7 @@ let discoveryJob: ScheduledTask | null = null;
 const DISCOVERY_CRON = process.env.OPPORTUNITY_DISCOVERY_CRON || "0 10 * * *";
 
 export function startOpportunityDiscoveryScheduler() {
-  if (process.env.OPPORTUNITY_DISCOVERY_ENABLED !== "true") {
+  if (process.env.OPPORTUNITY_DISCOVERY_ENABLED === "false") {
     console.log("[Opportunity Discovery] Disabled. Set OPPORTUNITY_DISCOVERY_ENABLED=true to enable.");
     return;
   }
@@ -31,7 +31,8 @@ export function startOpportunityDiscoveryScheduler() {
 
   console.log(`[Opportunity Discovery] Started (${DISCOVERY_CRON})`);
 
-  if (process.env.OPPORTUNITY_DISCOVERY_RUN_ON_STARTUP === "true") {
+  if (process.env.OPPORTUNITY_DISCOVERY_RUN_ON_STARTUP !== "false") {
+    console.log("[Opportunity Discovery] Running startup opportunity discovery...");
     runOpportunityDiscovery().catch((error) => {
       console.error("[Opportunity Discovery] Startup run failed:", error);
     });

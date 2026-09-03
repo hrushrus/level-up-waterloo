@@ -8,7 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { ENV } from "./env";
 import { initExpirationScheduler } from "../schedulers/expiration-scheduler";
-import { startOpportunityDiscoveryScheduler } from "../schedulers/opportunity-discovery-scheduler";
+import { startOpportunityDiscoveryScheduler, triggerOpportunityDiscovery } from "../schedulers/opportunity-discovery-scheduler";
 import { startReminderScheduler } from "../schedulers/reminder-scheduler";
 import { getAllOpportunities, getOpportunityById } from "../db";
 
@@ -77,6 +77,24 @@ async function startServer() {
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
+  });
+
+  app.get("/api/discovery/run", async (_req, res) => {
+    try {
+      const result = await triggerOpportunityDiscovery();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  app.post("/api/discovery/run", async (_req, res) => {
+    try {
+      const result = await triggerOpportunityDiscovery();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
   });
 
   app.get("/api/opportunities", async (_req, res) => {
