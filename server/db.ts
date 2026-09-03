@@ -1,4 +1,4 @@
-import { eq, or, like, inArray, gte, lte, desc, and } from "drizzle-orm";
+import { eq, or, like, inArray, gte, lte, desc, and, isNull, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, opportunities, Opportunity } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -107,6 +107,21 @@ export async function getAllOpportunities(): Promise<Opportunity[]> {
   } catch (error) {
     console.error("[Database] Failed to get opportunities:", error);
     return [];
+  }
+}
+
+export async function approveAllActiveOpportunities(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  try {
+    await db
+      .update(opportunities)
+      .set({ isApproved: true })
+      .where(or(isNull(opportunities.deadline), gt(opportunities.deadline, new Date())));
+    return (await getAllOpportunities()).length;
+  } catch (error) {
+    console.error("[Database] Failed to approve active opportunities:", error);
+    return 0;
   }
 }
 

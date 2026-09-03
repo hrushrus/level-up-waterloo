@@ -10,7 +10,7 @@ import { ENV } from "./env";
 import { initExpirationScheduler } from "../schedulers/expiration-scheduler";
 import { startOpportunityDiscoveryScheduler, triggerOpportunityDiscovery } from "../schedulers/opportunity-discovery-scheduler";
 import { startReminderScheduler } from "../schedulers/reminder-scheduler";
-import { getAllOpportunities, getOpportunityById } from "../db";
+import { getAllOpportunities, getOpportunityById, approveAllActiveOpportunities } from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -82,6 +82,7 @@ async function startServer() {
   app.get("/api/discovery/run", async (_req, res) => {
     try {
       const result = await triggerOpportunityDiscovery();
+      await approveAllActiveOpportunities();
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: String(error) });
@@ -91,7 +92,17 @@ async function startServer() {
   app.post("/api/discovery/run", async (_req, res) => {
     try {
       const result = await triggerOpportunityDiscovery();
+      await approveAllActiveOpportunities();
       res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  app.get("/api/opportunities/approve-all", async (_req, res) => {
+    try {
+      const count = await approveAllActiveOpportunities();
+      res.json({ ok: true, activeCount: count });
     } catch (error) {
       res.status(500).json({ error: String(error) });
     }
@@ -144,6 +155,9 @@ async function startServer() {
 
   // Initialize the opportunity discovery scheduler
   startOpportunityDiscoveryScheduler();
+
+  // Ensure active discovered opportunities are approved
+  approveAllActiveOpportunities().catch(console.error);
 }
 
 startServer().catch(console.error);
