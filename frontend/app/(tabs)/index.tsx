@@ -180,7 +180,7 @@ export default function HomeScreen() {
           <View className="gap-2">
             <Text className="text-3xl font-bold text-foreground">LevelUp Waterloo</Text>
             <Text className="text-base text-muted">
-              Discover opportunities for students in the Waterloo region
+              Discover <Text className="italic" style={{ fontStyle: "italic" }}>opportunities</Text> for students in the Waterloo region
             </Text>
             <View className="h-[1px] bg-border mt-2" style={{ width: "100%" }} />
           </View>

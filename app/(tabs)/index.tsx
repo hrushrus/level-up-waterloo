@@ -276,7 +276,7 @@ export default function HomeScreen() {
                 LevelUp Waterloo
               </Text>
               <Text className="text-base text-muted text-center">
-                Discover opportunities for students in the Waterloo region
+                Discover <Text className="italic" style={{ fontStyle: "italic" }}>opportunities</Text> for students in the Waterloo region
               </Text>
               <View
                 className="h-[1px] bg-border mt-2"
