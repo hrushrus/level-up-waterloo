@@ -260,11 +260,10 @@ export default function HomeScreen() {
         <View className="gap-4">
           {/* Top Navigation / Auth Bar */}
           <View className="flex-row justify-between items-center pb-1">
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center">
               <Text className="text-xs font-medium text-muted">Waterloo Region, ON</Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <PageViewBadge page="home" showTotal={true} label="views" />
               {user ? (
                 <TouchableOpacity
                   onPress={() => router.push("/(tabs)/profile" as any)}
@@ -322,12 +321,9 @@ export default function HomeScreen() {
                 Discover <Text className="italic" style={{ fontStyle: "italic" }}>opportunities</Text> for students in the Waterloo region
               </Text>
               <View
-                className="h-[1px] bg-border mt-2 mb-2"
+                className="h-[1px] bg-border mt-2"
                 style={{ width: "100%" }}
               />
-              <View className="w-full">
-                <PageViewCard page="home" showTotal={true} label="Total Platform Visits" />
-              </View>
             </View>
           </View>
 
@@ -740,6 +736,11 @@ export default function HomeScreen() {
                 resizeMode="contain"
               />
             </TouchableOpacity>
+
+            {/* Page View Counter all the way at the bottom */}
+            <View className="mt-8 pt-6 border-t border-border/60 items-center w-full max-w-sm">
+              <PageViewCard page="home" showTotal={true} label="Total Page Views" />
+            </View>
           </View>
         </View>
       </ScrollView>
