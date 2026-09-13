@@ -258,43 +258,6 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-4">
-          {/* Top Navigation / Auth Bar */}
-          <View className="flex-row justify-between items-center pb-1">
-            <View className="flex-row items-center">
-              <Text className="text-xs font-medium text-muted">Waterloo Region, ON</Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              {user ? (
-                <TouchableOpacity
-                  onPress={() => router.push("/(tabs)/profile" as any)}
-                  className="flex-row items-center bg-surface border border-border px-3 py-1.5 rounded-full"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-xs mr-1.5">👤</Text>
-                  <Text className="text-xs font-semibold text-foreground" numberOfLines={1}>
-                    {user.name ? user.name.split(" ")[0] : "Account"}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <View className="flex-row items-center gap-2">
-                  <TouchableOpacity
-                    onPress={() => router.push("/(auth)/login" as any)}
-                    className="px-3 py-1.5 rounded-full"
-                    activeOpacity={0.7}
-                  >
-                    <Text className="text-sm font-semibold text-muted">Sign In</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => router.push("/(auth)/signup" as any)}
-                    className="bg-primary px-4 py-1.5 rounded-full shadow-sm"
-                    activeOpacity={0.8}
-                  >
-                    <Text className="text-sm font-bold text-white">Sign Up</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
 
           {/* Header with Logo */}
           <View className="gap-3 items-center mb-2">
