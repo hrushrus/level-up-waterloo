@@ -72,19 +72,21 @@ function generateEmailTemplate(
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background-color: #0a7ea4; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
-          .content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; }
-          .footer { background-color: #f0f0f0; padding: 15px; text-align: center; font-size: 12px; color: #666; }
-          .button { display: inline-block; background-color: #0a7ea4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-          .alert { background-color: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0; }
-          h2 { color: #0a7ea4; }
-          .opportunity-details { background-color: white; padding: 15px; border-left: 4px solid #0a7ea4; margin: 20px 0; }
+          .header { background-color: #121316; color: #f59e0b; padding: 24px; border-radius: 8px 8px 0 0; border-bottom: 3px solid #f59e0b; }
+          .header h1 { margin: 0 0 4px 0; color: #ffffff; }
+          .header p { margin: 0; color: #fbbf24; font-size: 14px; }
+          .content { background-color: #fcfcfc; padding: 24px; border: 1px solid #e4e4e7; }
+          .footer { background-color: #f4f4f5; padding: 16px; text-align: center; font-size: 12px; color: #71717a; border-radius: 0 0 8px 8px; }
+          .button { display: inline-block; background-color: #121316; color: #fbbf24 !important; font-weight: bold; padding: 12px 24px; text-decoration: none; border-radius: 8px; border: 1px solid #d97706; margin: 20px 0; }
+          .alert { background-color: #fef3c7; border: 1px solid #fde68a; padding: 15px; border-radius: 8px; margin: 20px 0; color: #92400e; }
+          h2 { color: #121316; }
+          .opportunity-details { background-color: white; padding: 16px; border-left: 4px solid #f59e0b; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin: 20px 0; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>LevelUp Waterloo</h1>
+            <h1>LevelUp <span style="color: #f59e0b;">Waterloo</span></h1>
             <p>Opportunity Deadline Reminder</p>
           </div>
 
@@ -101,7 +103,7 @@ function generateEmailTemplate(
             </div>
 
             <div class="opportunity-details">
-              <h3>${opportunityTitle}</h3>
+              <h3 style="margin-top: 0; color: #121316;">${opportunityTitle}</h3>
               <p>${opportunityDescription}</p>
               <p style="margin-top: 15px;">
                 <a href="${opportunityLink}" class="button">View Opportunity</a>
@@ -123,7 +125,7 @@ function generateEmailTemplate(
             <p>
               You received this email because you bookmarked this opportunity on LevelUp Waterloo.
               <br>
-              <a href="#" style="color: #0a7ea4; text-decoration: none;">Manage preferences</a>
+              <a href="#" style="color: #d97706; text-decoration: none; font-weight: 600;">Manage preferences</a>
             </p>
           </div>
         </div>

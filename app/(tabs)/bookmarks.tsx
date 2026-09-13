@@ -49,10 +49,10 @@ export default function BookmarksScreen() {
 
           {/* Guest Sync Prompt */}
           {!user && (
-            <View className="bg-primary/10 border border-primary/20 rounded-2xl p-4 sm:p-5 mb-6 flex-row items-center justify-between gap-4">
+            <View className="bg-amber-400/10 border border-amber-400/30 rounded-2xl p-4 sm:p-5 mb-6 flex-row items-center justify-between gap-4">
               <View className="flex-1">
                 <View className="flex-row items-center gap-1.5 mb-1">
-                  <Ionicons name="sync" size={16} color="#0a7ea4" />
+                  <Ionicons name="sync" size={16} color="#d97706" />
                   <Text className="text-sm font-bold text-foreground">
                     Keep your bookmarks synced
                   </Text>
@@ -64,10 +64,10 @@ export default function BookmarksScreen() {
               </View>
               <TouchableOpacity
                 onPress={() => router.push("/(auth)/signup" as any)}
-                className="bg-primary px-4 py-2 rounded-xl shrink-0"
+                className="bg-black border border-amber-400/40 px-4 py-2 rounded-xl shrink-0"
                 activeOpacity={0.8}
               >
-                <Text className="text-white text-xs font-bold">Sign Up Free</Text>
+                <Text className="text-amber-400 text-xs font-bold">Sign Up Free</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -93,11 +93,11 @@ export default function BookmarksScreen() {
               <View className="flex-row items-center gap-3 flex-wrap justify-center">
                 <TouchableOpacity
                   onPress={() => router.push("/(tabs)")}
-                  className="bg-primary flex-row items-center gap-2 px-5 py-2.5 rounded-xl shadow-xs"
+                  className="bg-black border border-amber-400/40 flex-row items-center gap-2 px-5 py-2.5 rounded-xl shadow-xs"
                   activeOpacity={0.85}
                 >
-                  <Ionicons name="compass-outline" size={16} color="#ffffff" />
-                  <Text className="text-white text-xs font-bold">
+                  <Ionicons name="compass-outline" size={16} color="#fbbf24" />
+                  <Text className="text-amber-400 text-xs font-bold">
                     Browse Opportunities
                   </Text>
                 </TouchableOpacity>

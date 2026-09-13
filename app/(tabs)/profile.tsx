@@ -42,8 +42,8 @@ export default function ProfileScreen() {
           {/* Header */}
           <View className="mb-6 pb-4 border-b border-border">
             <View className="flex-row items-center gap-2.5 mb-1">
-              <View className="bg-primary/10 p-2 rounded-xl">
-                <Ionicons name="person" size={22} color="#0a7ea4" />
+              <View className="bg-amber-400/15 p-2 rounded-xl">
+                <Ionicons name="person" size={22} color="#d97706" />
               </View>
               <Text className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 {user ? "Student Profile" : "Account"}
@@ -68,11 +68,11 @@ export default function ProfileScreen() {
               </View>
 
               <TouchableOpacity
-                className="w-full bg-primary rounded-xl py-3.5 items-center mb-3 shadow-sm"
+                className="w-full bg-black border border-amber-400/40 rounded-xl py-3.5 items-center mb-3 shadow-sm"
                 onPress={() => router.push("/(auth)/signup" as any)}
                 activeOpacity={0.85}
               >
-                <Text className="text-white font-bold text-sm">
+                <Text className="text-amber-400 font-bold text-sm">
                   Create Free Account
                 </Text>
               </TouchableOpacity>

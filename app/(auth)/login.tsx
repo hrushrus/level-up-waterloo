@@ -74,8 +74,8 @@ export default function LoginScreen() {
               className="flex-row items-center gap-1.5 mb-6 self-start py-1.5 px-2 rounded-lg hover:bg-muted/10"
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={16} color="#0a7ea4" />
-              <Text className="text-primary text-sm font-semibold">
+              <Ionicons name="arrow-back" size={16} color="#d97706" />
+              <Text className="text-amber-700 text-sm font-bold">
                 Back to Opportunities
               </Text>
             </TouchableOpacity>
@@ -215,7 +215,7 @@ export default function LoginScreen() {
                   onPress={() => router.push("/(auth)/forgot-password" as any)}
                   disabled={isLoading}
                 >
-                  <Text className="text-primary font-semibold text-xs">
+                  <Text className="text-amber-700 font-bold text-xs">
                     Forgot password?
                   </Text>
                 </TouchableOpacity>
@@ -223,16 +223,16 @@ export default function LoginScreen() {
 
               {/* Login Button */}
               <TouchableOpacity
-                className="w-full bg-primary rounded-xl py-3.5 items-center mb-4 shadow-sm"
+                className="w-full bg-black border border-amber-400/40 rounded-xl py-3.5 items-center mb-4 shadow-sm"
                 onPress={handleLogin}
                 disabled={isLoading}
                 activeOpacity={0.85}
                 style={isLoading ? { opacity: 0.7 } : {}}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#fbbf24" />
                 ) : (
-                  <Text className="text-white font-bold text-sm">Sign In</Text>
+                  <Text className="text-amber-400 font-bold text-sm">Sign In</Text>
                 )}
               </TouchableOpacity>
 
@@ -243,7 +243,7 @@ export default function LoginScreen() {
                   onPress={() => router.push("/(auth)/signup" as any)}
                   disabled={isLoading}
                 >
-                  <Text className="text-primary font-bold text-xs">
+                  <Text className="text-amber-700 font-bold text-xs">
                     Create free account
                   </Text>
                 </TouchableOpacity>

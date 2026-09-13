@@ -191,9 +191,9 @@ export function OpportunityCard({
             {(opportunity.tags ?? []).slice(0, 3).map((tag) => (
               <View
                 key={tag}
-                className="bg-primary/5 border border-primary/15 px-2 py-0.5 rounded-md"
+                className="bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md"
               >
-                <Text className="text-xs font-medium text-primary">#{tag}</Text>
+                <Text className="text-xs font-semibold text-amber-800">#{tag}</Text>
               </View>
             ))}
           </View>
@@ -207,10 +207,10 @@ export function OpportunityCard({
             </Text>
 
             <View className="flex-row items-center gap-1">
-              <Text className="text-xs font-semibold text-primary">
+              <Text className="text-xs font-bold text-amber-700">
                 View Details
               </Text>
-              <Ionicons name="arrow-forward" size={14} color="#0a7ea4" />
+              <Ionicons name="arrow-forward" size={14} color="#d97706" />
             </View>
           </View>
         </View>

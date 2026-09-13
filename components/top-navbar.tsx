@@ -55,7 +55,7 @@ export function TopNavbar() {
           </View>
           <View>
             <Text className="text-base font-bold text-foreground tracking-tight">
-              LevelUp <Text className="text-primary">Waterloo</Text>
+              LevelUp <Text className="text-amber-500 font-black">Waterloo</Text>
             </Text>
           </View>
         </TouchableOpacity>
@@ -65,18 +65,18 @@ export function TopNavbar() {
           <TouchableOpacity
             onPress={() => router.push("/(tabs)" as any)}
             className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 ${
-              isHome ? "bg-primary/10" : ""
+              isHome ? "bg-amber-400/15" : ""
             }`}
             activeOpacity={0.7}
           >
             <Ionicons
               name={isHome ? "compass" : "compass-outline"}
               size={15}
-              color={isHome ? "#0a7ea4" : "#64748b"}
+              color={isHome ? "#d97706" : "#71717a"}
             />
             <Text
               className={`text-sm font-semibold ${
-                isHome ? "text-primary font-bold" : "text-muted"
+                isHome ? "text-amber-700 font-bold" : "text-muted"
               }`}
             >
               Opportunities
@@ -86,18 +86,18 @@ export function TopNavbar() {
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/bookmarks" as any)}
             className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 ${
-              isBookmarks ? "bg-primary/10" : ""
+              isBookmarks ? "bg-amber-400/15" : ""
             }`}
             activeOpacity={0.7}
           >
             <Ionicons
               name={bookmarkedIds.size > 0 ? "heart" : "heart-outline"}
               size={15}
-              color={bookmarkedIds.size > 0 ? "#ef4444" : isBookmarks ? "#0a7ea4" : "#64748b"}
+              color={bookmarkedIds.size > 0 ? "#ef4444" : isBookmarks ? "#d97706" : "#71717a"}
             />
             <Text
               className={`text-sm font-semibold ${
-                isBookmarks ? "text-primary font-bold" : "text-muted"
+                isBookmarks ? "text-amber-700 font-bold" : "text-muted"
               }`}
             >
               Saved{bookmarkedIds.size > 0 ? ` (${bookmarkedIds.size})` : ""}
@@ -113,12 +113,12 @@ export function TopNavbar() {
                 onPress={() => router.push("/(tabs)/profile" as any)}
                 className={`flex-row items-center px-3 py-1.5 rounded-full border gap-1.5 ${
                   isProfile
-                    ? "bg-primary/10 border-primary"
+                    ? "bg-amber-400/15 border-amber-400"
                     : "bg-surface border-border"
                 }`}
                 activeOpacity={0.7}
               >
-                <Ionicons name="person-circle-outline" size={17} color="#0a7ea4" />
+                <Ionicons name="person-circle-outline" size={17} color="#d97706" />
                 <Text
                   className="text-xs font-semibold text-foreground"
                   numberOfLines={1}
@@ -152,10 +152,10 @@ export function TopNavbar() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => router.push("/(auth)/signup" as any)}
-                className="bg-primary px-4 py-1.5 rounded-full shadow-xs"
+                className="bg-black border border-amber-400/40 px-4 py-1.5 rounded-full shadow-xs"
                 activeOpacity={0.8}
               >
-                <Text className="text-sm font-bold text-white">Sign Up</Text>
+                <Text className="text-sm font-bold text-amber-400">Sign Up</Text>
               </TouchableOpacity>
             </View>
           )}

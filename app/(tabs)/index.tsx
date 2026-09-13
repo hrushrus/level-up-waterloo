@@ -211,55 +211,55 @@ export default function HomeScreen() {
         <View className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-6">
           {/* Action-Oriented Hero & Search Area */}
           <View
-            className="rounded-3xl p-6 sm:p-8 mb-6 border border-border overflow-hidden"
+            className="rounded-3xl p-6 sm:p-8 mb-6 border border-zinc-800 overflow-hidden"
             style={{
-              backgroundColor: "#f0f9ff",
-              shadowColor: "#0284c7",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 8,
-              elevation: 2,
+              backgroundColor: "#121316",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 12,
+              elevation: 4,
             }}
           >
             {/* Top Badge */}
             <View className="flex-row items-center gap-2 mb-3">
-              <View className="bg-primary/15 px-3 py-1 rounded-full flex-row items-center gap-1.5">
-                <Ionicons name="sparkles" size={13} color="#0a7ea4" />
-                <Text className="text-xs font-bold text-primary tracking-wide">
+              <View className="bg-amber-400/15 border border-amber-400/30 px-3 py-1 rounded-full flex-row items-center gap-1.5">
+                <Ionicons name="sparkles" size={13} color="#f59e0b" />
+                <Text className="text-xs font-bold text-amber-400 tracking-wide">
                   Waterloo Region Student Hub
                 </Text>
               </View>
             </View>
 
             {/* Headline & Subtitle */}
-            <Text className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-2">
+            <Text className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
               Level up your high school journey.
             </Text>
-            <Text className="text-sm sm:text-base text-muted max-w-2xl mb-6 leading-relaxed">
+            <Text className="text-sm sm:text-base text-zinc-300 max-w-2xl mb-6 leading-relaxed">
               Discover internships, volunteer hours, STEM competitions, scholarships,
               and extracurricular programs designed for students in Waterloo Region.
             </Text>
 
             {/* Search Input Bar */}
             <View
-              className="bg-surface rounded-2xl border border-border p-2 sm:p-2.5 flex-row items-center mb-4"
+              className="bg-white rounded-2xl border border-zinc-200 p-2 sm:p-2.5 flex-row items-center mb-4"
               style={{
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 5,
+                shadowOpacity: 0.08,
+                shadowRadius: 6,
                 elevation: 2,
               }}
             >
               <View className="pl-3 pr-2">
-                <Ionicons name="search-outline" size={20} color="#0a7ea4" />
+                <Ionicons name="search-outline" size={20} color="#d97706" />
               </View>
               <TextInput
                 placeholder="Search opportunities by title, topic, or tags..."
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#71717a"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                className="flex-1 text-base text-foreground py-2 outline-none"
+                className="flex-1 text-base text-zinc-900 py-2 outline-none"
                 style={Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : undefined}
                 returnKeyType="search"
               />
@@ -269,14 +269,14 @@ export default function HomeScreen() {
                   className="p-2"
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Ionicons name="close-circle" size={20} color="#94a3b8" />
+                  <Ionicons name="close-circle" size={20} color="#71717a" />
                 </TouchableOpacity>
               )}
             </View>
 
             {/* Quick Filter Shortcuts */}
             <View className="flex-row items-center gap-2 flex-wrap">
-              <Text className="text-xs font-semibold text-muted mr-1">
+              <Text className="text-xs font-semibold text-zinc-400 mr-1">
                 Quick search:
               </Text>
               {QUICK_SHORTCUTS.map((shortcut) => {
@@ -289,19 +289,19 @@ export default function HomeScreen() {
                     }
                     className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border ${
                       isActive
-                        ? "bg-primary border-primary"
-                        : "bg-surface border-border/80"
+                        ? "bg-amber-400 border-amber-300"
+                        : "bg-zinc-900/90 border-zinc-700"
                     }`}
                     activeOpacity={0.7}
                   >
                     <Ionicons
                       name={shortcut.icon}
                       size={13}
-                      color={isActive ? "#ffffff" : shortcut.color}
+                      color={isActive ? "#000000" : shortcut.id === "closing_soon" ? "#fbbf24" : "#e4e4e7"}
                     />
                     <Text
-                      className={`text-xs font-semibold ${
-                        isActive ? "text-white" : "text-foreground"
+                      className={`text-xs font-bold ${
+                        isActive ? "text-black" : "text-zinc-200"
                       }`}
                     >
                       {shortcut.label}
@@ -314,11 +314,11 @@ export default function HomeScreen() {
 
           {/* Guest Sign Up Callout Banner */}
           {!user && showSignupBanner && (
-            <View className="bg-primary/10 border border-primary/25 rounded-2xl p-4 sm:p-5 mb-6">
+            <View className="bg-amber-400/10 border border-amber-400/30 rounded-2xl p-4 sm:p-5 mb-6">
               <View className="flex-row items-start justify-between">
                 <View className="flex-1 pr-3">
                   <View className="flex-row items-center gap-2 mb-1">
-                    <Ionicons name="bookmark" size={16} color="#0a7ea4" />
+                    <Ionicons name="bookmark" size={16} color="#d97706" />
                     <Text className="text-base font-bold text-foreground">
                       Never lose an application deadline
                     </Text>
@@ -329,10 +329,10 @@ export default function HomeScreen() {
                   <View className="flex-row items-center gap-2.5">
                     <TouchableOpacity
                       onPress={() => router.push("/(auth)/signup" as any)}
-                      className="bg-primary px-4 py-2 rounded-xl shadow-xs"
+                      className="bg-black border border-amber-400/40 px-4 py-2 rounded-xl shadow-xs"
                       activeOpacity={0.8}
                     >
-                      <Text className="text-white text-xs font-bold">
+                      <Text className="text-amber-400 text-xs font-bold">
                         Create Free Account
                       </Text>
                     </TouchableOpacity>
@@ -371,7 +371,7 @@ export default function HomeScreen() {
                     </Text>
                     {selectedCategory !== "all" && (
                       <TouchableOpacity onPress={() => setSelectedCategory("all")}>
-                        <Text className="text-xs text-primary font-semibold">
+                        <Text className="text-xs text-amber-700 font-bold">
                           View All
                         </Text>
                       </TouchableOpacity>
@@ -386,10 +386,10 @@ export default function HomeScreen() {
                         <TouchableOpacity
                           key={cat.id}
                           onPress={() => setSelectedCategory(cat.id)}
-                          className={`flex-row items-center justify-between px-3 py-2 rounded-xl ${
+                          className={`flex-row items-center justify-between px-3 py-2 rounded-xl border ${
                             isActive
-                              ? "bg-primary text-white"
-                              : "hover:bg-muted/10"
+                              ? "bg-black border-amber-400/50 shadow-xs"
+                              : "border-transparent hover:bg-muted/10"
                           }`}
                           activeOpacity={0.7}
                         >
@@ -397,11 +397,11 @@ export default function HomeScreen() {
                             <Ionicons
                               name={cat.icon}
                               size={16}
-                              color={isActive ? "#ffffff" : cat.color}
+                              color={isActive ? "#fbbf24" : cat.color}
                             />
                             <Text
-                              className={`text-sm font-medium ${
-                                isActive ? "text-white font-semibold" : "text-foreground"
+                              className={`text-sm ${
+                                isActive ? "text-amber-400 font-bold" : "text-foreground font-medium"
                               }`}
                               numberOfLines={1}
                             >
@@ -410,12 +410,12 @@ export default function HomeScreen() {
                           </View>
                           <View
                             className={`px-2 py-0.5 rounded-full ${
-                              isActive ? "bg-white/20" : "bg-muted/15"
+                              isActive ? "bg-amber-400/20" : "bg-muted/15"
                             }`}
                           >
                             <Text
                               className={`text-xs font-semibold ${
-                                isActive ? "text-white" : "text-muted"
+                                isActive ? "text-amber-400" : "text-muted"
                               }`}
                             >
                               {count}
@@ -435,7 +435,7 @@ export default function HomeScreen() {
                     </Text>
                     {hasActiveFilters && (
                       <TouchableOpacity onPress={resetAllFilters}>
-                        <Text className="text-xs text-primary font-semibold">
+                        <Text className="text-xs text-amber-700 font-bold">
                           Reset
                         </Text>
                       </TouchableOpacity>
@@ -454,14 +454,14 @@ export default function HomeScreen() {
                           onPress={() => setSelectedLevel(lvl.id)}
                           className={`px-3 py-1.5 rounded-lg flex-row items-center justify-between ${
                             selectedLevel === lvl.id
-                              ? "bg-primary/10 border border-primary/30"
+                              ? "bg-amber-400/15 border border-amber-400/40"
                               : "bg-surface border border-transparent"
                           }`}
                         >
                           <Text
                             className={`text-xs ${
                               selectedLevel === lvl.id
-                                ? "text-primary font-bold"
+                                ? "text-amber-800 font-bold"
                                 : "text-foreground font-medium"
                             }`}
                           >
@@ -471,7 +471,7 @@ export default function HomeScreen() {
                             <Ionicons
                               name="checkmark"
                               size={14}
-                              color="#0a7ea4"
+                              color="#d97706"
                             />
                           )}
                         </TouchableOpacity>
@@ -489,13 +489,13 @@ export default function HomeScreen() {
                         onPress={() => setSelectedType(null)}
                         className={`px-2.5 py-1 rounded-full border ${
                           selectedType === null
-                            ? "bg-primary border-primary"
+                            ? "bg-black border-amber-400/40"
                             : "bg-surface border-border"
                         }`}
                       >
                         <Text
-                          className={`text-xs font-medium ${
-                            selectedType === null ? "text-white" : "text-foreground"
+                          className={`text-xs font-semibold ${
+                            selectedType === null ? "text-amber-400" : "text-foreground"
                           }`}
                         >
                           All
@@ -509,14 +509,14 @@ export default function HomeScreen() {
                           }
                           className={`px-2.5 py-1 rounded-full border ${
                             selectedType === t.id
-                              ? "bg-primary border-primary"
+                              ? "bg-black border-amber-400/40"
                               : "bg-surface border-border"
                           }`}
                         >
                           <Text
-                            className={`text-xs font-medium ${
+                            className={`text-xs font-semibold ${
                               selectedType === t.id
-                                ? "text-white"
+                                ? "text-amber-400"
                                 : "text-foreground"
                             }`}
                           >
@@ -537,14 +537,14 @@ export default function HomeScreen() {
                         onPress={() => setSelectedDuration(null)}
                         className={`px-2.5 py-1 rounded-full border ${
                           selectedDuration === null
-                            ? "bg-primary border-primary"
+                            ? "bg-black border-amber-400/40"
                             : "bg-surface border-border"
                         }`}
                       >
                         <Text
-                          className={`text-xs font-medium ${
+                          className={`text-xs font-semibold ${
                             selectedDuration === null
-                              ? "text-white"
+                              ? "text-amber-400"
                               : "text-foreground"
                           }`}
                         >
@@ -561,14 +561,14 @@ export default function HomeScreen() {
                           }
                           className={`px-2.5 py-1 rounded-full border ${
                             selectedDuration === dur.id
-                              ? "bg-primary border-primary"
+                              ? "bg-black border-amber-400/40"
                               : "bg-surface border-border"
                           }`}
                         >
                           <Text
-                            className={`text-xs font-medium ${
+                            className={`text-xs font-semibold ${
                               selectedDuration === dur.id
-                                ? "text-white"
+                                ? "text-amber-400"
                                 : "text-foreground"
                             }`}
                           >
@@ -599,14 +599,14 @@ export default function HomeScreen() {
                             }
                             className={`px-2 py-0.5 rounded-md border ${
                               selected
-                                ? "bg-primary border-primary"
+                                ? "bg-black border-amber-400/40"
                                 : "bg-surface border-border"
                             }`}
                           >
                             <Text
-                              className={`text-xs ${
+                              className={`text-xs font-semibold ${
                                 selected
-                                  ? "text-white font-semibold"
+                                  ? "text-amber-400"
                                   : "text-muted"
                               }`}
                             >
@@ -641,7 +641,7 @@ export default function HomeScreen() {
                             onPress={() => setSelectedCategory(cat.id)}
                             className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border ${
                               isActive
-                                ? "bg-primary border-primary"
+                                ? "bg-black border-amber-400/50 shadow-xs"
                                 : "bg-surface border-border"
                             }`}
                             activeOpacity={0.7}
@@ -649,23 +649,23 @@ export default function HomeScreen() {
                             <Ionicons
                               name={cat.icon}
                               size={14}
-                              color={isActive ? "#ffffff" : cat.color}
+                              color={isActive ? "#fbbf24" : cat.color}
                             />
                             <Text
                               className={`text-xs font-semibold ${
-                                isActive ? "text-white" : "text-foreground"
+                                isActive ? "text-amber-400 font-bold" : "text-foreground"
                               }`}
                             >
                               {cat.shortLabel}
                             </Text>
                             <View
                               className={`px-1.5 py-0.2 rounded-full ${
-                                isActive ? "bg-white/25" : "bg-muted/15"
+                                isActive ? "bg-amber-400/20" : "bg-muted/15"
                               }`}
                             >
                               <Text
                                 className={`text-[10px] font-bold ${
-                                  isActive ? "text-white" : "text-muted"
+                                  isActive ? "text-amber-400" : "text-muted"
                                 }`}
                               >
                                 {count}
@@ -686,18 +686,18 @@ export default function HomeScreen() {
                     onPress={() => setShowMobileFilters(!showMobileFilters)}
                     className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl border ${
                       hasActiveFilters
-                        ? "bg-primary/10 border-primary"
+                        ? "bg-amber-400/15 border-amber-400/30"
                         : "bg-surface border-border"
                     }`}
                   >
                     <Ionicons
                       name="options-outline"
                       size={16}
-                      color={hasActiveFilters ? "#0a7ea4" : "#64748b"}
+                      color={hasActiveFilters ? "#d97706" : "#71717a"}
                     />
                     <Text
                       className={`text-xs font-semibold ${
-                        hasActiveFilters ? "text-primary" : "text-foreground"
+                        hasActiveFilters ? "text-amber-800 font-bold" : "text-foreground"
                       }`}
                     >
                       {showMobileFilters ? "Hide Filters" : "Filters"}
@@ -720,7 +720,7 @@ export default function HomeScreen() {
                     <Ionicons
                       name="swap-vertical-outline"
                       size={16}
-                      color="#64748b"
+                      color="#71717a"
                     />
                     <Text className="text-xs font-semibold text-foreground">
                       Sort:{" "}
@@ -743,7 +743,7 @@ export default function HomeScreen() {
                     </Text>
                     {hasActiveFilters && (
                       <TouchableOpacity onPress={resetAllFilters}>
-                        <Text className="text-xs text-primary font-semibold">
+                        <Text className="text-xs text-amber-700 font-bold">
                           Reset All
                         </Text>
                       </TouchableOpacity>
@@ -760,14 +760,14 @@ export default function HomeScreen() {
                           onPress={() => setSelectedLevel(lvl.id)}
                           className={`px-3 py-1 rounded-full border ${
                             selectedLevel === lvl.id
-                              ? "bg-primary border-primary"
+                              ? "bg-black border-amber-400/40"
                               : "bg-surface border-border"
                           }`}
                         >
                           <Text
-                            className={`text-xs font-medium ${
+                            className={`text-xs font-semibold ${
                               selectedLevel === lvl.id
-                                ? "text-white"
+                                ? "text-amber-400"
                                 : "text-foreground"
                             }`}
                           >
@@ -786,13 +786,13 @@ export default function HomeScreen() {
                         onPress={() => setSelectedType(null)}
                         className={`px-3 py-1 rounded-full border ${
                           selectedType === null
-                            ? "bg-primary border-primary"
+                            ? "bg-black border-amber-400/40"
                             : "bg-surface border-border"
                         }`}
                       >
                         <Text
-                          className={`text-xs font-medium ${
-                            selectedType === null ? "text-white" : "text-foreground"
+                          className={`text-xs font-semibold ${
+                            selectedType === null ? "text-amber-400" : "text-foreground"
                           }`}
                         >
                           All
@@ -806,14 +806,14 @@ export default function HomeScreen() {
                           }
                           className={`px-3 py-1 rounded-full border ${
                             selectedType === t.id
-                              ? "bg-primary border-primary"
+                              ? "bg-black border-amber-400/40"
                               : "bg-surface border-border"
                           }`}
                         >
                           <Text
-                            className={`text-xs font-medium ${
+                            className={`text-xs font-semibold ${
                               selectedType === t.id
-                                ? "text-white"
+                                ? "text-amber-400"
                                 : "text-foreground"
                             }`}
                           >
@@ -832,14 +832,14 @@ export default function HomeScreen() {
                         onPress={() => setSelectedDuration(null)}
                         className={`px-3 py-1 rounded-full border ${
                           selectedDuration === null
-                            ? "bg-primary border-primary"
+                            ? "bg-black border-amber-400/40"
                             : "bg-surface border-border"
                         }`}
                       >
                         <Text
-                          className={`text-xs font-medium ${
+                          className={`text-xs font-semibold ${
                             selectedDuration === null
-                              ? "text-white"
+                              ? "text-amber-400"
                               : "text-foreground"
                           }`}
                         >
@@ -856,14 +856,14 @@ export default function HomeScreen() {
                           }
                           className={`px-3 py-1 rounded-full border ${
                             selectedDuration === dur.id
-                              ? "bg-primary border-primary"
+                              ? "bg-black border-amber-400/40"
                               : "bg-surface border-border"
                           }`}
                         >
                           <Text
-                            className={`text-xs font-medium ${
+                            className={`text-xs font-semibold ${
                               selectedDuration === dur.id
-                                ? "text-white"
+                                ? "text-amber-400"
                                 : "text-foreground"
                             }`}
                           >
@@ -908,13 +908,13 @@ export default function HomeScreen() {
                         onPress={() => setSortBy(opt.id)}
                         className={`px-3 py-1 rounded-lg ${
                           sortBy === opt.id
-                            ? "bg-primary"
+                            ? "bg-black border border-amber-400/50 shadow-xs"
                             : "hover:bg-muted/10"
                         }`}
                       >
                         <Text
-                          className={`text-xs font-semibold ${
-                            sortBy === opt.id ? "text-white" : "text-foreground"
+                          className={`text-xs font-bold ${
+                            sortBy === opt.id ? "text-amber-400" : "text-foreground"
                           }`}
                         >
                           {opt.label}
@@ -932,41 +932,41 @@ export default function HomeScreen() {
                 selectedTags.length > 0) && (
                 <View className="flex-row flex-wrap items-center gap-1.5 mb-4">
                   {selectedLevel !== "both" && (
-                    <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1">
-                      <Text className="text-xs text-primary font-medium">
+                    <View className="bg-amber-400/15 border border-amber-400/30 px-2.5 py-1 rounded-full flex-row items-center gap-1">
+                      <Text className="text-xs text-amber-900 font-semibold">
                         Level: {LEVELS.find((l) => l.id === selectedLevel)?.label}
                       </Text>
                       <TouchableOpacity onPress={() => setSelectedLevel("both")}>
-                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                        <Ionicons name="close" size={13} color="#d97706" />
                       </TouchableOpacity>
                     </View>
                   )}
                   {selectedType !== null && (
-                    <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1">
-                      <Text className="text-xs text-primary font-medium">
+                    <View className="bg-amber-400/15 border border-amber-400/30 px-2.5 py-1 rounded-full flex-row items-center gap-1">
+                      <Text className="text-xs text-amber-900 font-semibold">
                         Format: {TYPES.find((t) => t.id === selectedType)?.label}
                       </Text>
                       <TouchableOpacity onPress={() => setSelectedType(null)}>
-                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                        <Ionicons name="close" size={13} color="#d97706" />
                       </TouchableOpacity>
                     </View>
                   )}
                   {selectedDuration !== null && (
-                    <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1">
-                      <Text className="text-xs text-primary font-medium">
+                    <View className="bg-amber-400/15 border border-amber-400/30 px-2.5 py-1 rounded-full flex-row items-center gap-1">
+                      <Text className="text-xs text-amber-900 font-semibold">
                         Duration: {DURATIONS.find((d) => d.id === selectedDuration)?.label}
                       </Text>
                       <TouchableOpacity onPress={() => setSelectedDuration(null)}>
-                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                        <Ionicons name="close" size={13} color="#d97706" />
                       </TouchableOpacity>
                     </View>
                   )}
                   {selectedTags.map((tag) => (
                     <View
                       key={tag}
-                      className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1"
+                      className="bg-amber-400/15 border border-amber-400/30 px-2.5 py-1 rounded-full flex-row items-center gap-1"
                     >
-                      <Text className="text-xs text-primary font-medium">
+                      <Text className="text-xs text-amber-900 font-semibold">
                         #{tag}
                       </Text>
                       <TouchableOpacity
@@ -974,7 +974,7 @@ export default function HomeScreen() {
                           setSelectedTags(selectedTags.filter((t) => t !== tag))
                         }
                       >
-                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                        <Ionicons name="close" size={13} color="#d97706" />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -1000,9 +1000,9 @@ export default function HomeScreen() {
                   </Text>
                   <TouchableOpacity
                     onPress={() => void refetchAllOpps()}
-                    className="bg-primary px-5 py-2.5 rounded-xl"
+                    className="bg-black border border-amber-400/40 px-5 py-2.5 rounded-xl shadow-xs"
                   >
-                    <Text className="text-white text-xs font-bold">
+                    <Text className="text-amber-400 text-xs font-bold">
                       Retry Loading
                     </Text>
                   </TouchableOpacity>
@@ -1021,8 +1021,8 @@ export default function HomeScreen() {
                 </View>
               ) : (
                 <View className="bg-surface rounded-2xl border border-border p-8 sm:p-12 items-center justify-center">
-                  <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-3">
-                    <Ionicons name="search" size={28} color="#0a7ea4" />
+                  <View className="w-16 h-16 rounded-full bg-amber-400/15 items-center justify-center mb-3">
+                    <Ionicons name="search" size={28} color="#d97706" />
                   </View>
                   <Text className="text-lg font-bold text-foreground mb-1">
                     No matching opportunities
@@ -1032,10 +1032,10 @@ export default function HomeScreen() {
                   </Text>
                   <TouchableOpacity
                     onPress={resetAllFilters}
-                    className="bg-primary px-5 py-2.5 rounded-xl shadow-xs"
+                    className="bg-black border border-amber-400/40 px-5 py-2.5 rounded-xl shadow-xs"
                     activeOpacity={0.8}
                   >
-                    <Text className="text-white text-xs font-bold">
+                    <Text className="text-amber-400 text-xs font-bold">
                       Clear All Filters & Search
                     </Text>
                   </TouchableOpacity>

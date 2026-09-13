@@ -106,7 +106,7 @@ export default function OpportunityDetailScreen() {
   if (isLoading) {
     return (
       <ScreenContainer className="items-center justify-center bg-background">
-        <ActivityIndicator size="large" color="#0a7ea4" />
+        <ActivityIndicator size="large" color="#d97706" />
         <Text className="text-muted text-sm mt-3">Loading opportunity details...</Text>
       </ScreenContainer>
     );
@@ -124,9 +124,9 @@ export default function OpportunityDetailScreen() {
         </Text>
         <TouchableOpacity
           onPress={() => router.push("/(tabs)")}
-          className="bg-primary px-6 py-3 rounded-xl shadow-xs"
+          className="bg-black border border-amber-400/40 px-6 py-3 rounded-xl shadow-xs"
         >
-          <Text className="text-white font-bold">Back to Opportunities</Text>
+          <Text className="text-amber-400 font-bold">Back to Opportunities</Text>
         </TouchableOpacity>
       </ScreenContainer>
     );
@@ -150,8 +150,8 @@ export default function OpportunityDetailScreen() {
               className="flex-row items-center gap-2 py-1.5 px-2.5 -ml-2.5 rounded-lg hover:bg-muted/10"
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={18} color="#0a7ea4" />
-              <Text className="text-primary font-bold text-sm">
+              <Ionicons name="arrow-back" size={18} color="#d97706" />
+              <Text className="text-amber-700 font-bold text-sm">
                 Opportunities
               </Text>
             </TouchableOpacity>
@@ -273,13 +273,13 @@ export default function OpportunityDetailScreen() {
             {opportunity.externalLink && (
               <TouchableOpacity
                 onPress={handleOpenLink}
-                className="bg-primary flex-row items-center justify-center gap-2 py-3.5 px-6 rounded-2xl shadow-sm hover:opacity-95"
+                className="bg-black border border-amber-400/50 flex-row items-center justify-center gap-2 py-3.5 px-6 rounded-2xl shadow-sm hover:opacity-95"
                 activeOpacity={0.85}
               >
-                <Text className="text-white text-base font-bold">
+                <Text className="text-amber-400 text-base font-extrabold">
                   Apply / Visit Official Website
                 </Text>
-                <Ionicons name="open-outline" size={18} color="#ffffff" />
+                <Ionicons name="open-outline" size={18} color="#fbbf24" />
               </TouchableOpacity>
             )}
           </View>
@@ -288,7 +288,7 @@ export default function OpportunityDetailScreen() {
           <View className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             <View className="bg-surface border border-border p-4 rounded-2xl">
               <View className="flex-row items-center gap-1.5 mb-1 text-muted">
-                <Ionicons name="school-outline" size={15} color="#0a7ea4" />
+                <Ionicons name="school-outline" size={15} color="#d97706" />
                 <Text className="text-xs font-semibold text-muted uppercase">
                   Level
                 </Text>
@@ -300,7 +300,7 @@ export default function OpportunityDetailScreen() {
 
             <View className="bg-surface border border-border p-4 rounded-2xl">
               <View className="flex-row items-center gap-1.5 mb-1 text-muted">
-                <Ionicons name="location-outline" size={15} color="#0a7ea4" />
+                <Ionicons name="location-outline" size={15} color="#d97706" />
                 <Text className="text-xs font-semibold text-muted uppercase">
                   Format
                 </Text>
@@ -312,7 +312,7 @@ export default function OpportunityDetailScreen() {
 
             <View className="bg-surface border border-border p-4 rounded-2xl">
               <View className="flex-row items-center gap-1.5 mb-1 text-muted">
-                <Ionicons name="time-outline" size={15} color="#0a7ea4" />
+                <Ionicons name="time-outline" size={15} color="#d97706" />
                 <Text className="text-xs font-semibold text-muted uppercase">
                   Duration
                 </Text>
@@ -324,7 +324,7 @@ export default function OpportunityDetailScreen() {
 
             <View className="bg-surface border border-border p-4 rounded-2xl">
               <View className="flex-row items-center gap-1.5 mb-1 text-muted">
-                <Ionicons name="calendar-outline" size={15} color="#0a7ea4" />
+                <Ionicons name="calendar-outline" size={15} color="#d97706" />
                 <Text className="text-xs font-semibold text-muted uppercase">
                   Deadline
                 </Text>
@@ -341,7 +341,7 @@ export default function OpportunityDetailScreen() {
           {/* About This Opportunity */}
           <View className="bg-surface rounded-3xl p-6 sm:p-8 border border-border mb-6">
             <View className="flex-row items-center gap-2 mb-4 pb-3 border-b border-border/60">
-              <Ionicons name="document-text-outline" size={20} color="#0a7ea4" />
+              <Ionicons name="document-text-outline" size={20} color="#d97706" />
               <Text className="text-lg font-bold text-foreground">
                 About this Opportunity
               </Text>
@@ -361,9 +361,9 @@ export default function OpportunityDetailScreen() {
                   {(opportunity.tags ?? []).map((tag) => (
                     <View
                       key={tag}
-                      className="bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-xl"
+                      className="bg-amber-400/10 border border-amber-400/25 px-3 py-1.5 rounded-xl"
                     >
-                      <Text className="text-xs font-semibold text-primary">
+                      <Text className="text-xs font-semibold text-amber-800">
                         #{tag}
                       </Text>
                     </View>
@@ -411,13 +411,13 @@ export default function OpportunityDetailScreen() {
               {opportunity.externalLink && (
                 <TouchableOpacity
                   onPress={handleOpenLink}
-                  className="bg-primary flex-row items-center gap-2 px-5 py-2.5 rounded-xl shadow-xs"
+                  className="bg-black border border-amber-400/40 flex-row items-center gap-2 px-5 py-2.5 rounded-xl shadow-xs"
                   activeOpacity={0.85}
                 >
-                  <Text className="text-white text-xs font-bold">
+                  <Text className="text-amber-400 text-xs font-bold">
                     Apply Now
                   </Text>
-                  <Ionicons name="open-outline" size={15} color="#ffffff" />
+                  <Ionicons name="open-outline" size={15} color="#fbbf24" />
                 </TouchableOpacity>
               )}
             </View>
