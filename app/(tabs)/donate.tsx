@@ -113,23 +113,27 @@ export default function DonateScreen() {
       return;
     }
 
-    if (!isAnonymous && !donorName.trim()) {
-      setErrorMessage("Please enter your name or check 'Remain anonymous'.");
+    if (showOnWall && !isAnonymous && !donorName.trim()) {
+      setErrorMessage("Please enter your name or choose 'Display as Anonymous Supporter'.");
       return;
     }
+
+    const finalDonorName = showOnWall
+      ? (isAnonymous ? "Anonymous Supporter" : donorName.trim())
+      : (donorName.trim() || "Private Supporter");
 
     // If card payment and an external Stripe link is configured:
     const stripeUrl = process.env.EXPO_PUBLIC_STRIPE_PAYMENT_URL;
 
     try {
       const result = await submitMutation.mutateAsync({
-        donorName: isAnonymous ? "Anonymous Supporter" : donorName.trim(),
+        donorName: finalDonorName,
         donorEmail: donorEmail.trim() || undefined,
         amountInCents,
         currency: "CAD",
         tier: selectedTierId,
         message: message.trim() || undefined,
-        isAnonymous,
+        isAnonymous: !showOnWall || isAnonymous,
         showOnWall,
         paymentMethod,
         transactionId: paymentMethod === "card" && stripeUrl ? "stripe_redirect" : undefined,
@@ -299,9 +303,25 @@ export default function DonateScreen() {
               <Text className="text-2xl font-black text-foreground mb-2">
                 Thank You for Supporting Local Youth!
               </Text>
-              <Text className="text-base text-muted max-w-lg mb-6 leading-relaxed">
+              <Text className="text-base text-muted max-w-lg mb-4 leading-relaxed">
                 Your contribution of <Text className="font-bold text-foreground">${lastPledgedAmount} CAD</Text> has been recorded. You are helping keep Level Up Waterloo free and active for students across our community!
               </Text>
+
+              {showOnWall ? (
+                <View className="flex-row items-center gap-2 mb-6 bg-amber-400/20 border border-amber-400/40 px-4 py-2 rounded-full">
+                  <Ionicons name="ribbon" size={15} color="#d97706" />
+                  <Text className="text-xs font-bold text-amber-800">
+                    Recognized on the Community Wall of Gratitude below!
+                  </Text>
+                </View>
+              ) : (
+                <View className="flex-row items-center gap-2 mb-6 bg-surface border border-border px-4 py-2 rounded-full">
+                  <Ionicons name="lock-closed" size={14} color="#71717a" />
+                  <Text className="text-xs font-semibold text-muted">
+                    Private donation — will not be listed on the public wall or website.
+                  </Text>
+                </View>
+              )}
 
               {paymentMethod === "interac" && (
                 <View className="bg-surface p-4 rounded-2xl border border-amber-400/40 w-full max-w-md mb-6 text-left">
@@ -500,86 +520,204 @@ export default function DonateScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Supporter Details Form */}
-              <View className="gap-4 mb-6">
-                {!isAnonymous && (
-                  <View>
-                    <Text className="text-xs font-bold text-foreground mb-1">
-                      Your Name or Organization
+              {/* Website Recognition Option */}
+              <View className="mb-6">
+                <Text className="text-xs font-bold uppercase tracking-wider text-muted mb-2.5">
+                  Website Recognition Preference
+                </Text>
+
+                <View className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  {/* Option 1: Yes, recognize on website */}
+                  <TouchableOpacity
+                    onPress={() => setShowOnWall(true)}
+                    className={`p-4 rounded-2xl border transition-all ${
+                      showOnWall
+                        ? "bg-amber-400/15 border-amber-500 shadow-2xs"
+                        : "bg-background/60 border-border"
+                    }`}
+                    activeOpacity={0.8}
+                  >
+                    <View className="flex-row items-center justify-between mb-1.5">
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons
+                          name="ribbon"
+                          size={18}
+                          color={showOnWall ? "#d97706" : "#71717a"}
+                        />
+                        <Text className="text-sm font-bold text-foreground">
+                          Recognize on Website
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name={showOnWall ? "radio-button-on" : "radio-button-off"}
+                        size={18}
+                        color={showOnWall ? "#d97706" : "#71717a"}
+                      />
+                    </View>
+                    <Text className="text-xs text-muted leading-relaxed">
+                      Feature your contribution on the community Wall of Gratitude with an optional encouraging note.
                     </Text>
-                    <TextInput
-                      value={donorName}
-                      onChangeText={setDonorName}
-                      placeholder="e.g., Sarah Chen or Waterloo Robotics Club"
-                      className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
-                      placeholderTextColor="#9ca3af"
-                    />
+                  </TouchableOpacity>
+
+                  {/* Option 2: No, keep private */}
+                  <TouchableOpacity
+                    onPress={() => setShowOnWall(false)}
+                    className={`p-4 rounded-2xl border transition-all ${
+                      !showOnWall
+                        ? "bg-amber-400/15 border-amber-500 shadow-2xs"
+                        : "bg-background/60 border-border"
+                    }`}
+                    activeOpacity={0.8}
+                  >
+                    <View className="flex-row items-center justify-between mb-1.5">
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons
+                          name="lock-closed"
+                          size={18}
+                          color={!showOnWall ? "#d97706" : "#71717a"}
+                        />
+                        <Text className="text-sm font-bold text-foreground">
+                          Keep Private (No Recognition)
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name={!showOnWall ? "radio-button-on" : "radio-button-off"}
+                        size={18}
+                        color={!showOnWall ? "#d97706" : "#71717a"}
+                      />
+                    </View>
+                    <Text className="text-xs text-muted leading-relaxed">
+                      Do not display my name, amount, or message on the website. Counted only toward aggregate goal.
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Conditional Fields Based on Recognition Choice */}
+                {showOnWall ? (
+                  <View className="p-4.5 rounded-2xl bg-amber-400/10 border border-amber-400/30 gap-4">
+                    <View className="flex-row items-center justify-between">
+                      <Text className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                        Public Display Details
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setIsAnonymous(!isAnonymous)}
+                        className="flex-row items-center gap-1.5"
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons
+                          name={isAnonymous ? "checkbox" : "square-outline"}
+                          size={17}
+                          color={isAnonymous ? "#d97706" : "#71717a"}
+                        />
+                        <Text className="text-xs font-semibold text-foreground">
+                          Display as Anonymous Supporter
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {!isAnonymous && (
+                      <View>
+                        <Text className="text-xs font-bold text-foreground mb-1">
+                          Display Name or Organization <Text className="text-amber-600">*</Text>
+                        </Text>
+                        <TextInput
+                          value={donorName}
+                          onChangeText={setDonorName}
+                          placeholder="e.g., Sarah Chen or Waterloo Robotics Club"
+                          className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
+                          placeholderTextColor="#9ca3af"
+                        />
+                      </View>
+                    )}
+
+                    <View>
+                      <Text className="text-xs font-bold text-foreground mb-1">
+                        Encouraging Message for Students <Text className="text-muted font-normal">(optional, shown on wall)</Text>
+                      </Text>
+                      <TextInput
+                        value={message}
+                        onChangeText={setMessage}
+                        placeholder="e.g., 'Proud to support our local students reaching their potential! Keep up the great work.'"
+                        multiline
+                        numberOfLines={3}
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
+                        placeholderTextColor="#9ca3af"
+                        style={{ minHeight: 65, textAlignVertical: "top" }}
+                      />
+                    </View>
+
+                    <View>
+                      <Text className="text-xs font-bold text-foreground mb-1">
+                        Email Address <Text className="text-muted font-normal">(private, never displayed publicly)</Text>
+                      </Text>
+                      <TextInput
+                        value={donorEmail}
+                        onChangeText={setDonorEmail}
+                        placeholder="you@domain.ca"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
+                        placeholderTextColor="#9ca3af"
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <View className="p-4.5 rounded-2xl bg-zinc-100 border border-zinc-200 gap-3.5">
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons name="shield-checkmark" size={18} color="#10b981" />
+                      <Text className="text-xs font-bold text-zinc-800">
+                        100% Private Donation Guaranteed
+                      </Text>
+                    </View>
+                    <Text className="text-xs text-muted leading-relaxed">
+                      Your contribution supports Level Up Waterloo behind the scenes. Nothing will ever be published on the website or Wall of Gratitude.
+                    </Text>
+
+                    <View>
+                      <Text className="text-xs font-bold text-foreground mb-1">
+                        Name or Organization <Text className="text-muted font-normal">(optional, internal record only)</Text>
+                      </Text>
+                      <TextInput
+                        value={donorName}
+                        onChangeText={setDonorName}
+                        placeholder="Optional name for our records"
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
+                        placeholderTextColor="#9ca3af"
+                      />
+                    </View>
+
+                    <View>
+                      <Text className="text-xs font-bold text-foreground mb-1">
+                        Private Note to Organizers <Text className="text-muted font-normal">(optional, internal only)</Text>
+                      </Text>
+                      <TextInput
+                        value={message}
+                        onChangeText={setMessage}
+                        placeholder="Optional private feedback or note to the team"
+                        multiline
+                        numberOfLines={2}
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
+                        placeholderTextColor="#9ca3af"
+                        style={{ minHeight: 55, textAlignVertical: "top" }}
+                      />
+                    </View>
+
+                    <View>
+                      <Text className="text-xs font-bold text-foreground mb-1">
+                        Email Address <Text className="text-muted font-normal">(optional, for confirmation)</Text>
+                      </Text>
+                      <TextInput
+                        value={donorEmail}
+                        onChangeText={setDonorEmail}
+                        placeholder="you@domain.ca"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
+                        placeholderTextColor="#9ca3af"
+                      />
+                    </View>
                   </View>
                 )}
-
-                <View>
-                  <Text className="text-xs font-bold text-foreground mb-1">
-                    Email Address <Text className="text-muted font-normal">(optional, for receipt or updates)</Text>
-                  </Text>
-                  <TextInput
-                    value={donorEmail}
-                    onChangeText={setDonorEmail}
-                    placeholder="you@domain.ca"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
-                    placeholderTextColor="#9ca3af"
-                  />
-                </View>
-
-                <View>
-                  <Text className="text-xs font-bold text-foreground mb-1">
-                    Encouraging Message for Waterloo Youth <Text className="text-muted font-normal">(optional)</Text>
-                  </Text>
-                  <TextInput
-                    value={message}
-                    onChangeText={setMessage}
-                    placeholder="e.g., 'Proud to support our local students reaching their potential! Keep up the great work.'"
-                    multiline
-                    numberOfLines={3}
-                    className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground"
-                    placeholderTextColor="#9ca3af"
-                    style={{ minHeight: 70, textAlignVertical: "top" }}
-                  />
-                </View>
-
-                {/* Options Checkboxes */}
-                <View className="flex-row flex-wrap gap-4 pt-1">
-                  <TouchableOpacity
-                    onPress={() => setIsAnonymous(!isAnonymous)}
-                    className="flex-row items-center gap-2"
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name={isAnonymous ? "checkbox" : "square-outline"}
-                      size={18}
-                      color={isAnonymous ? "#d97706" : "#71717a"}
-                    />
-                    <Text className="text-xs font-medium text-foreground">
-                      Remain anonymous on the public wall
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => setShowOnWall(!showOnWall)}
-                    className="flex-row items-center gap-2"
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name={showOnWall ? "checkbox" : "square-outline"}
-                      size={18}
-                      color={showOnWall ? "#d97706" : "#71717a"}
-                    />
-                    <Text className="text-xs font-medium text-foreground">
-                      Show message on the Wall of Gratitude
-                    </Text>
-                  </TouchableOpacity>
-                </View>
               </View>
 
               {errorMessage && (

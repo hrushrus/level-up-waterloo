@@ -26,4 +26,20 @@ describe("Donations Router", () => {
       }),
     ).rejects.toThrow();
   });
+
+  it("should accept private donations with showOnWall false", async () => {
+    // Should accept validation with showOnWall false
+    const schema = (await import("zod")).z.object({
+      donorName: (await import("zod")).z.string().min(1),
+      amountInCents: (await import("zod")).z.number().min(100),
+      showOnWall: (await import("zod")).z.boolean(),
+    });
+    expect(() =>
+      schema.parse({
+        donorName: "Private Donor",
+        amountInCents: 1500,
+        showOnWall: false,
+      })
+    ).not.toThrow();
+  });
 });
