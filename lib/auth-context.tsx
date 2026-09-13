@@ -34,6 +34,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function parseResponseError(response: Response, defaultMsg: string): Promise<string> {
+  try {
+    const errorData = await response.json();
+    return (
+      errorData.error?.json?.message ||
+      errorData.error?.message ||
+      errorData.message ||
+      defaultMsg
+    );
+  } catch {
+    return `${defaultMsg} (${response.status})`;
+  }
+}
+
+function extractTrpcData<T = any>(data: any): T | null {
+  return data?.result?.data?.json ?? data?.result?.data ?? null;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,20 +94,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Signup failed");
+        throw new Error(await parseResponseError(response, "Signup failed"));
       }
 
       const data = await response.json();
+      const payload = extractTrpcData(data);
 
-      if (data.result?.data?.success) {
+      if (payload?.success && payload?.user) {
         const newUser: AuthUser = {
-          id: data.result.data.user.id,
+          id: payload.user.id,
           openId: "",
-          email: data.result.data.user.email,
-          name: data.result.data.user.name,
+          email: payload.user.email,
+          name: payload.user.name,
           loginMethod: "email",
-          emailVerified: data.result.data.user.emailVerified,
+          emailVerified: payload.user.emailVerified,
           lastSignedIn: new Date(),
         };
         setUser(newUser);
@@ -122,20 +140,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Login failed");
+        throw new Error(await parseResponseError(response, "Login failed"));
       }
 
       const data = await response.json();
+      const payload = extractTrpcData(data);
 
-      if (data.result?.data?.success) {
+      if (payload?.success && payload?.user) {
         const newUser: AuthUser = {
-          id: data.result.data.user.id,
+          id: payload.user.id,
           openId: "",
-          email: data.result.data.user.email,
-          name: data.result.data.user.name,
+          email: payload.user.email,
+          name: payload.user.name,
           loginMethod: "email",
-          emailVerified: data.result.data.user.emailVerified,
+          emailVerified: payload.user.emailVerified,
           lastSignedIn: new Date(),
         };
         setUser(newUser);
@@ -194,20 +212,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Email verification failed");
+        throw new Error(await parseResponseError(response, "Email verification failed"));
       }
 
       const data = await response.json();
+      const payload = extractTrpcData(data);
 
-      if (data.result?.data?.success) {
+      if (payload?.success && payload?.user) {
         const verifiedUser: AuthUser = {
-          id: data.result.data.user.id,
+          id: payload.user.id,
           openId: "",
-          email: data.result.data.user.email,
-          name: data.result.data.user.name,
+          email: payload.user.email,
+          name: payload.user.name,
           loginMethod: "email",
-          emailVerified: data.result.data.user.emailVerified ?? true,
+          emailVerified: payload.user.emailVerified ?? true,
           lastSignedIn: new Date(),
         };
         setUser(verifiedUser);
@@ -239,8 +257,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Failed to resend verification email");
+        throw new Error(await parseResponseError(response, "Failed to resend verification email"));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to resend verification email";
@@ -266,8 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Failed to request password reset");
+        throw new Error(await parseResponseError(response, "Failed to request password reset"));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to request password reset";
@@ -293,12 +309,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Invalid or expired token");
+        throw new Error(await parseResponseError(response, "Invalid or expired token"));
       }
 
       const data = await response.json();
-      return data.result?.data?.email || "";
+      const payload = extractTrpcData(data);
+      return payload?.email || "";
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to validate token";
       setError(message);
@@ -324,18 +340,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Password reset failed");
+        throw new Error(await parseResponseError(response, "Password reset failed"));
       }
 
       const data = await response.json();
+      const payload = extractTrpcData(data);
 
-      if (data.result?.data?.success) {
+      if (payload?.success && payload?.user) {
         const resetUser: AuthUser = {
-          id: data.result.data.user.id,
+          id: payload.user.id,
           openId: "",
-          email: data.result.data.user.email,
-          name: data.result.data.user.name,
+          email: payload.user.email,
+          name: payload.user.name,
           loginMethod: "email",
           lastSignedIn: new Date(),
         };
@@ -369,8 +385,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Failed to set security questions");
+        throw new Error(await parseResponseError(response, "Failed to set security questions"));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to set security questions";
@@ -399,18 +414,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Security questions verification failed");
+        throw new Error(await parseResponseError(response, "Security questions verification failed"));
       }
 
       const data = await response.json();
+      const payload = extractTrpcData(data);
 
-      if (data.result?.data?.success) {
+      if (payload?.success && payload?.user) {
         const verifiedUser: AuthUser = {
-          id: data.result.data.user.id,
+          id: payload.user.id,
           openId: "",
-          email: data.result.data.user.email,
-          name: data.result.data.user.name,
+          email: payload.user.email,
+          name: payload.user.name,
           loginMethod: "email",
           lastSignedIn: new Date(),
         };
@@ -443,12 +458,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Failed to get security questions");
+        throw new Error(await parseResponseError(response, "Failed to get security questions"));
       }
 
       const data = await response.json();
-      return data.result?.data?.questions || [];
+      const payload = extractTrpcData(data);
+      return payload?.questions || payload || [];
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to get security questions";
       setError(message);
@@ -473,12 +488,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Failed to check security questions");
+        throw new Error(await parseResponseError(response, "Failed to check security questions"));
       }
 
       const data = await response.json();
-      return data.result?.data?.hasSecurityQuestions || false;
+      const payload = extractTrpcData(data);
+      return payload?.hasSecurityQuestions ?? payload?.hasQuestions ?? false;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to check security questions";
       setError(message);

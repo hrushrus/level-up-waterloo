@@ -24,10 +24,12 @@ export const OWNER_OPEN_ID = env.ownerId;
 export const OWNER_NAME = env.ownerName;
 export const API_BASE_URL = env.apiBaseUrl;
 
+export const DEFAULT_API_URL = "https://level-up-api-production.up.railway.app";
+
 /**
  * Get the API base URL, deriving from current hostname if not set.
  * Metro runs on 8081, API server runs on 3000.
- * URL pattern: https://PORT-sandboxid.region.domain
+ * In production, falls back to the Railway backend service.
  */
 export function getApiBaseUrl(): string {
   // If API_BASE_URL is set, use it
@@ -35,18 +37,22 @@ export function getApiBaseUrl(): string {
     return API_BASE_URL.replace(/\/$/, "");
   }
 
-  // On web, derive from current hostname by replacing port 8081 with 3000
+  // On web dev, derive from current hostname
   if (ReactNative.Platform.OS === "web" && typeof window !== "undefined" && window.location) {
     const { protocol, hostname } = window.location;
     // Pattern: 8081-sandboxid.region.domain -> 3000-sandboxid.region.domain
-    const apiHostname = hostname.replace(/^8081-/, "3000-");
-    if (apiHostname !== hostname) {
+    if (hostname.startsWith("8081-")) {
+      const apiHostname = hostname.replace(/^8081-/, "3000-");
       return `${protocol}//${apiHostname}`;
+    }
+    // Localhost development
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:3000";
     }
   }
 
-  // Fallback to empty (will use relative URL)
-  return "";
+  // Fallback to production Railway backend
+  return DEFAULT_API_URL;
 }
 
 export const SESSION_TOKEN_KEY = "app_session_token";
