@@ -93,56 +93,24 @@ interface PageViewBadgeProps {
 export function PageViewBadge({
   page = "home",
   showTotal = false,
-  label,
+  label = "visits",
   className = "",
 }: PageViewBadgeProps) {
-  const { views, totalViews, isLoading } = usePageView(page);
+  const { views, totalViews } = usePageView(page);
 
   const count = showTotal ? totalViews : (views ?? totalViews);
   const formattedCount = count !== null ? count.toLocaleString() : "···";
-  const displayLabel = label || (showTotal ? "Total Site Views" : "Views");
+  const displayLabel = label ?? (showTotal ? "visits" : "views");
 
   return (
     <View
       className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface border border-border shadow-xs ${className}`}
-      style={{ alignSelf: "flex-start" }}
+      style={{ alignSelf: "center" }}
     >
       <Text style={{ fontSize: 13 }}>👀</Text>
       <Text className="text-xs font-semibold text-foreground">
-        {formattedCount}{" "}
-        <Text className="text-xs font-normal text-muted">{displayLabel}</Text>
+        {formattedCount} <Text className="text-xs font-normal text-muted">{displayLabel}</Text>
       </Text>
-    </View>
-  );
-}
-
-export function PageViewCard({
-  page = "home",
-  showTotal = true,
-  label = "Total Page Views",
-  className = "",
-}: {
-  page?: string;
-  showTotal?: boolean;
-  label?: string;
-  className?: string;
-}) {
-  const { views, totalViews } = usePageView(page);
-  const count = showTotal ? totalViews : (views ?? totalViews);
-  const formattedCount = count !== null ? count.toLocaleString() : "···";
-
-  return (
-    <View
-      className={`flex-row items-center justify-between px-4 py-3 bg-surface border border-border rounded-xl shadow-xs ${className}`}
-    >
-      <View className="flex-row items-center gap-2">
-        <Text style={{ fontSize: 16 }}>📊</Text>
-        <Text className="text-sm font-semibold text-foreground">{label}</Text>
-      </View>
-      <View className="flex-row items-center gap-1 bg-primary/10 px-3 py-1 rounded-full">
-        <Text style={{ fontSize: 12 }}>👀</Text>
-        <Text className="text-sm font-bold text-primary">{formattedCount}</Text>
-      </View>
     </View>
   );
 }

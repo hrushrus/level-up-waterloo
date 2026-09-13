@@ -20,7 +20,7 @@ import {
 } from "@/shared/opportunity-tags";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunities } from "@/lib/opportunities-api";
-import { PageViewBadge, PageViewCard } from "@/components/page-view-counter";
+import { PageViewBadge } from "@/components/page-view-counter";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -738,8 +738,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             {/* Page View Counter all the way at the bottom */}
-            <View className="mt-8 pt-6 border-t border-border/60 items-center w-full max-w-sm">
-              <PageViewCard page="home" showTotal={true} label="Total Page Views" />
+            <View className="mt-8 pt-6 border-t border-border/60 items-center w-full">
+              <PageViewBadge page="home" showTotal={true} label="visits" />
             </View>
           </View>
         </View>
