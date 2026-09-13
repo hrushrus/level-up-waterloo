@@ -62,7 +62,20 @@ export default function DonateScreen() {
   // Tier selection
   const [selectedTierId, setSelectedTierId] = useState<string>("champion");
   const [customAmountStr, setCustomAmountStr] = useState<string>("50");
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "interac" | "pledge">("card");
+  const paymentMethod = "interac" as const;
+
+  // e-Transfer destination email
+  const DONATION_EMAIL =
+    process.env.EXPO_PUBLIC_DONATION_ETRANSFER_EMAIL || "levelupwaterloo@gmail.com";
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const handleCopyEmail = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(DONATION_EMAIL);
+    }
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2500);
+  };
 
   // Form fields
   const [donorName, setDonorName] = useState(user?.name || "");
@@ -122,9 +135,6 @@ export default function DonateScreen() {
       ? (isAnonymous ? "Anonymous Supporter" : donorName.trim())
       : (donorName.trim() || "Private Supporter");
 
-    // If card payment and an external Stripe link is configured:
-    const stripeUrl = process.env.EXPO_PUBLIC_STRIPE_PAYMENT_URL;
-
     try {
       const result = await submitMutation.mutateAsync({
         donorName: finalDonorName,
@@ -136,18 +146,13 @@ export default function DonateScreen() {
         isAnonymous: !showOnWall || isAnonymous,
         showOnWall,
         paymentMethod,
-        transactionId: paymentMethod === "card" && stripeUrl ? "stripe_redirect" : undefined,
+        transactionId: "interac_etransfer",
       });
 
       if (result.success) {
         setLastPledgedAmount(amountInCents / 100);
         setSuccessSubmitted(true);
         statsQuery.refetch();
-
-        // If card checkout is active with a Stripe URL, open in browser
-        if (paymentMethod === "card" && stripeUrl) {
-          Linking.openURL(stripeUrl).catch(console.error);
-        }
       }
     } catch (err: any) {
       setErrorMessage(err?.message || "Failed to record contribution. Please try again.");
@@ -323,22 +328,53 @@ export default function DonateScreen() {
                 </View>
               )}
 
-              {paymentMethod === "interac" && (
-                <View className="bg-surface p-4 rounded-2xl border border-amber-400/40 w-full max-w-md mb-6 text-left">
-                  <Text className="text-xs font-bold text-foreground mb-1">
-                    Interac e-Transfer Instructions:
+              <View className="bg-surface p-5 rounded-2xl border border-amber-400/40 w-full max-w-md mb-6 text-left shadow-2xs">
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Interac e-Transfer Instructions
                   </Text>
-                  <Text className="text-xs text-muted mb-2">
-                    Send your e-Transfer to:
-                  </Text>
-                  <Text className="text-sm font-mono font-bold text-amber-700 bg-amber-400/10 p-2 rounded-lg text-center mb-2">
-                    donate@levelupwaterloo.local
-                  </Text>
-                  <Text className="text-xs text-muted">
-                    Message note: <Text className="font-semibold text-foreground">LevelUp - {isAnonymous ? "Anonymous" : donorName}</Text>
-                  </Text>
+                  <View className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                    <Text className="text-2xs font-bold text-emerald-700">Autodeposit Active</Text>
+                  </View>
                 </View>
-              )}
+
+                <Text className="text-xs text-muted mb-2">
+                  Please open your Canadian banking app and send <Text className="font-bold text-foreground">${lastPledgedAmount} CAD</Text> to:
+                </Text>
+
+                <View className="flex-row items-center justify-between bg-amber-400/10 p-3 rounded-xl border border-amber-400/30 mb-3">
+                  <Text className="text-sm font-mono font-bold text-amber-900 select-all">
+                    {DONATION_EMAIL}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleCopyEmail}
+                    className={`px-3 py-1.5 rounded-lg flex-row items-center gap-1.5 ${
+                      copiedEmail ? "bg-emerald-600" : "bg-black border border-amber-400"
+                    }`}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={copiedEmail ? "checkmark" : "copy-outline"}
+                      size={13}
+                      color={copiedEmail ? "#fff" : "#fbbf24"}
+                    />
+                    <Text
+                      className={`text-2xs font-bold ${
+                        copiedEmail ? "text-white" : "text-amber-400"
+                      }`}
+                    >
+                      {copiedEmail ? "Copied!" : "Copy Email"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text className="text-xs text-muted mb-1">
+                  Optional transfer memo: <Text className="font-semibold text-foreground">LevelUp - {isAnonymous || !showOnWall ? "Anonymous" : donorName || "Community Member"}</Text>
+                </Text>
+                <Text className="text-2xs text-muted leading-relaxed">
+                  No security question needed. Funds deposit automatically and 100% goes to operational costs.
+                </Text>
+              </View>
 
               <TouchableOpacity
                 onPress={() => {
@@ -445,79 +481,60 @@ export default function DonateScreen() {
                 )}
               </TouchableOpacity>
 
-              {/* Payment Method Selector */}
+              {/* Dedicated Contribution Method: Interac e-Transfer */}
               <Text className="text-xs font-bold uppercase tracking-wider text-muted mb-2.5">
                 Contribution Method
               </Text>
-              <View className="flex-row flex-wrap gap-2 mb-6">
-                <TouchableOpacity
-                  onPress={() => setPaymentMethod("card")}
-                  className={`flex-1 min-w-[140px] py-2.5 px-3.5 rounded-xl border flex-row items-center justify-center gap-2 ${
-                    paymentMethod === "card"
-                      ? "bg-black border-amber-400 text-amber-400"
-                      : "bg-background border-border text-muted"
-                  }`}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name="card-outline"
-                    size={16}
-                    color={paymentMethod === "card" ? "#fbbf24" : "#71717a"}
-                  />
-                  <Text
-                    className={`text-xs font-bold ${
-                      paymentMethod === "card" ? "text-amber-400" : "text-foreground"
-                    }`}
-                  >
-                    Credit / Debit / Apple Pay
-                  </Text>
-                </TouchableOpacity>
+              <View className="p-4 rounded-2xl bg-amber-400/10 border border-amber-400/40 mb-6">
+                <View className="flex-row items-center justify-between mb-2">
+                  <View className="flex-row items-center gap-2">
+                    <View className="w-8 h-8 rounded-xl bg-amber-400 items-center justify-center">
+                      <Ionicons name="send" size={16} color="#000" />
+                    </View>
+                    <View>
+                      <Text className="text-sm font-bold text-foreground">
+                        Interac e-Transfer (Canada)
+                      </Text>
+                      <Text className="text-2xs text-muted">
+                        100% of your donation reaches local youth (0% processing fees)
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                    <Text className="text-2xs font-bold text-emerald-700">Autodeposit</Text>
+                  </View>
+                </View>
 
-                <TouchableOpacity
-                  onPress={() => setPaymentMethod("interac")}
-                  className={`flex-1 min-w-[140px] py-2.5 px-3.5 rounded-xl border flex-row items-center justify-center gap-2 ${
-                    paymentMethod === "interac"
-                      ? "bg-black border-amber-400 text-amber-400"
-                      : "bg-background border-border text-muted"
-                  }`}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name="send-outline"
-                    size={16}
-                    color={paymentMethod === "interac" ? "#fbbf24" : "#71717a"}
-                  />
-                  <Text
-                    className={`text-xs font-bold ${
-                      paymentMethod === "interac" ? "text-amber-400" : "text-foreground"
+                <View className="bg-surface p-3 rounded-xl border border-border flex-row items-center justify-between mt-1.5">
+                  <View className="flex-1 mr-2">
+                    <Text className="text-2xs uppercase tracking-wider text-muted font-bold">
+                      Send e-Transfer To:
+                    </Text>
+                    <Text className="text-sm font-mono font-bold text-foreground select-all">
+                      {DONATION_EMAIL}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={handleCopyEmail}
+                    className={`px-3 py-1.5 rounded-lg flex-row items-center gap-1.5 ${
+                      copiedEmail ? "bg-emerald-600" : "bg-black border border-amber-400"
                     }`}
+                    activeOpacity={0.8}
                   >
-                    Interac e-Transfer
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setPaymentMethod("pledge")}
-                  className={`flex-1 min-w-[140px] py-2.5 px-3.5 rounded-xl border flex-row items-center justify-center gap-2 ${
-                    paymentMethod === "pledge"
-                      ? "bg-black border-amber-400 text-amber-400"
-                      : "bg-background border-border text-muted"
-                  }`}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name="hand-left-outline"
-                    size={16}
-                    color={paymentMethod === "pledge" ? "#fbbf24" : "#71717a"}
-                  />
-                  <Text
-                    className={`text-xs font-bold ${
-                      paymentMethod === "pledge" ? "text-amber-400" : "text-foreground"
-                    }`}
-                  >
-                    Community Pledge
-                  </Text>
-                </TouchableOpacity>
+                    <Ionicons
+                      name={copiedEmail ? "checkmark" : "copy-outline"}
+                      size={13}
+                      color={copiedEmail ? "#fff" : "#fbbf24"}
+                    />
+                    <Text
+                      className={`text-xs font-bold ${
+                        copiedEmail ? "text-white" : "text-amber-400"
+                      }`}
+                    >
+                      {copiedEmail ? "Copied!" : "Copy"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Website Recognition Option */}
@@ -740,9 +757,9 @@ export default function DonateScreen() {
                   <ActivityIndicator size="small" color="#000" />
                 ) : (
                   <>
-                    <Ionicons name="heart" size={18} color="#000" />
+                    <Ionicons name="send" size={17} color="#000" />
                     <Text className="text-black font-black text-base">
-                      Contribute ${getSelectedAmountDollars()} CAD
+                      Confirm ${getSelectedAmountDollars()} CAD e-Transfer
                     </Text>
                   </>
                 )}
