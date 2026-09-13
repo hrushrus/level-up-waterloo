@@ -146,6 +146,58 @@ export const appRouter = router({
         };
       }),
   }),
+
+  donations: router({
+    // Get public donation stats and community supporters wall
+    getStats: publicProcedure.query(async () => {
+      return await db.getDonationStats();
+    }),
+
+    // Submit a community contribution or pledge
+    submit: publicProcedure
+      .input(
+        z.object({
+          donorName: z.string().min(1, "Name is required").max(255),
+          donorEmail: z.string().email("Invalid email").optional().or(z.literal("")),
+          amountInCents: z.number().min(100, "Minimum contribution is $1.00"),
+          currency: z.string().default("CAD"),
+          tier: z.string().default("supporter"),
+          message: z.string().max(1000).optional(),
+          isAnonymous: z.boolean().default(false),
+          showOnWall: z.boolean().default(true),
+          paymentMethod: z.string().default("card"),
+          transactionId: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id || null;
+        const normalizedData: any = {
+          userId,
+          donorName: input.donorName.trim(),
+          donorEmail: input.donorEmail?.trim() || null,
+          amountInCents: input.amountInCents,
+          currency: input.currency || "CAD",
+          tier: input.tier || "supporter",
+          message: input.message?.trim() || null,
+          isAnonymous: input.isAnonymous,
+          showOnWall: input.showOnWall,
+          paymentMethod: input.paymentMethod || "card",
+          status: "completed",
+          transactionId: input.transactionId?.trim() || null,
+        };
+
+        const result = await db.createDonation(normalizedData);
+        if (!result.success) {
+          throw new Error(result.error || "Failed to record contribution");
+        }
+
+        return {
+          success: true,
+          id: result.id,
+          message: "Thank you so much for supporting Level Up Waterloo!",
+        };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

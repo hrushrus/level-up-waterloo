@@ -327,11 +327,12 @@ export async function ensureDatabaseSchema(): Promise<{
   success: boolean;
   enumsUpdated: boolean;
   suggestionsCreated: boolean;
+  donationsCreated: boolean;
   errors: string[];
 }> {
   const db = await getDb();
   if (!db) {
-    return { success: false, enumsUpdated: false, suggestionsCreated: false, errors: ["No database connection"] };
+    return { success: false, enumsUpdated: false, suggestionsCreated: false, donationsCreated: false, errors: ["No database connection"] };
   }
 
   const errors: string[] = [];
@@ -400,10 +401,39 @@ export async function ensureDatabaseSchema(): Promise<{
     errors.push(`page_views table: ${err?.message}`);
   }
 
+  // 4. Create donations table
+  let donationsCreated = false;
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS \`donations\` (
+        \`id\` int AUTO_INCREMENT NOT NULL,
+        \`userId\` int,
+        \`donorName\` varchar(255) NOT NULL,
+        \`donorEmail\` varchar(320),
+        \`amountInCents\` int NOT NULL,
+        \`currency\` varchar(10) NOT NULL DEFAULT 'CAD',
+        \`tier\` varchar(50) NOT NULL DEFAULT 'supporter',
+        \`message\` text,
+        \`isAnonymous\` boolean NOT NULL DEFAULT false,
+        \`showOnWall\` boolean NOT NULL DEFAULT true,
+        \`paymentMethod\` varchar(50) NOT NULL DEFAULT 'stripe',
+        \`status\` enum('completed','pledged','refunded') NOT NULL DEFAULT 'completed',
+        \`transactionId\` varchar(255),
+        \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        \`updatedAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT \`donations_id\` PRIMARY KEY(\`id\`)
+      )
+    `);
+    donationsCreated = true;
+  } catch (err: any) {
+    errors.push(`donations table: ${err?.message}`);
+  }
+
   return {
     success: errors.length === 0 || enumsUpdated,
     enumsUpdated,
     suggestionsCreated,
+    donationsCreated,
     errors,
   };
 }

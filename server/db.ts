@@ -1,6 +1,6 @@
 import { eq, or, like, inArray, gte, lte, desc, and, isNull, gt, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, opportunities, Opportunity, suggestions, Suggestion, InsertSuggestion } from "../drizzle/schema";
+import { InsertUser, users, opportunities, Opportunity, suggestions, Suggestion, InsertSuggestion, donations, Donation, InsertDonation } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -616,5 +616,133 @@ export async function getSuggestionStats(): Promise<{
     return { total: 0, pending: 0, approved: 0, rejected: 0, converted: 0, opportunities: 0, sources: 0 };
   }
 }
+
+// ---------------------------------------------------------------------------
+// Donation & Community Support helpers
+// ---------------------------------------------------------------------------
+
+export async function createDonation(
+  data: InsertDonation,
+): Promise<{ success: boolean; id?: number; error?: string }> {
+  const db = await getDb();
+  if (!db) {
+    return { success: false, error: "Database not available" };
+  }
+
+  try {
+    const result: any = await db.insert(donations).values(data);
+    const insertId = result[0]?.insertId ?? result.insertId;
+    return { success: true, id: insertId ? Number(insertId) : undefined };
+  } catch (error: any) {
+    console.error("[Database] Failed to create donation record:", error);
+    return { success: false, error: error?.message || "Failed to record contribution" };
+  }
+}
+
+export async function getDonationStats(): Promise<{
+  totalRaisedCents: number;
+  donorCount: number;
+  goalCents: number;
+  supporters: Array<{
+    id: number;
+    displayName: string;
+    amountInCents: number;
+    currency: string;
+    tier: string;
+    message: string | null;
+    createdAt: Date;
+  }>;
+}> {
+  const db = await getDb();
+  const goalCents = 50000; // $500.00 CAD annual infrastructure goal
+  if (!db) {
+    return { totalRaisedCents: 0, donorCount: 0, goalCents, supporters: [] };
+  }
+
+  try {
+    const all = await db
+      .select()
+      .from(donations)
+      .where(or(eq(donations.status, "completed"), eq(donations.status, "pledged")))
+      .orderBy(desc(donations.createdAt));
+
+    const totalRaisedCents = all
+      .filter((d) => d.status === "completed")
+      .reduce((sum, d) => sum + d.amountInCents, 0);
+
+    const donorCount = all.length;
+
+    const supporters = all
+      .filter((d) => d.showOnWall)
+      .slice(0, 50)
+      .map((d) => ({
+        id: d.id,
+        displayName: d.isAnonymous ? "Anonymous Community Member" : d.donorName,
+        amountInCents: d.amountInCents,
+        currency: d.currency,
+        tier: d.tier,
+        message: d.message,
+        createdAt: d.createdAt,
+      }));
+
+    return {
+      totalRaisedCents,
+      donorCount,
+      goalCents,
+      supporters,
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get donation stats:", error);
+    return { totalRaisedCents: 0, donorCount: 0, goalCents, supporters: [] };
+  }
+}
+
+export async function getAllDonations(filter?: {
+  status?: "completed" | "pledged" | "refunded";
+}): Promise<Donation[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    const query = db.select().from(donations);
+    if (filter?.status) {
+      return await query.where(eq(donations.status, filter.status)).orderBy(desc(donations.createdAt));
+    }
+    return await query.orderBy(desc(donations.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to list donations:", error);
+    return [];
+  }
+}
+
+export async function updateDonationStatus(
+  id: number,
+  status: "completed" | "pledged" | "refunded",
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    await db.update(donations).set({ status }).where(eq(donations.id, id));
+    return true;
+  } catch (error) {
+    console.error(`[Database] Failed to update donation status ${id}:`, error);
+    return false;
+  }
+}
+
+export async function toggleDonationWall(id: number, showOnWall: boolean): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    await db.update(donations).set({ showOnWall }).where(eq(donations.id, id));
+    return true;
+  } catch (error) {
+    console.error(`[Database] Failed to toggle donation wall visibility for ${id}:`, error);
+    return false;
+  }
+}
+
 
 

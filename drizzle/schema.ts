@@ -189,3 +189,25 @@ export const suggestions = mysqlTable("suggestions", {
 export type Suggestion = typeof suggestions.$inferSelect;
 export type InsertSuggestion = typeof suggestions.$inferInsert;
 
+// Donations table for tracking community support, hosting contributions, and donor recognition
+export const donations = mysqlTable("donations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  donorName: varchar("donorName", { length: 255 }).notNull(),
+  donorEmail: varchar("donorEmail", { length: 320 }),
+  amountInCents: int("amountInCents").notNull(),
+  currency: varchar("currency", { length: 10 }).default("CAD").notNull(),
+  tier: varchar("tier", { length: 50 }).default("supporter").notNull(),
+  message: text("message"),
+  isAnonymous: boolean("isAnonymous").default(false).notNull(),
+  showOnWall: boolean("showOnWall").default(true).notNull(),
+  paymentMethod: varchar("paymentMethod", { length: 50 }).default("stripe").notNull(),
+  status: mysqlEnum("status", ["completed", "pledged", "refunded"]).default("completed").notNull(),
+  transactionId: varchar("transactionId", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Donation = typeof donations.$inferSelect;
+export type InsertDonation = typeof donations.$inferInsert;
+

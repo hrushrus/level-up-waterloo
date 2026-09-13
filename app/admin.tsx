@@ -38,7 +38,7 @@ const INITIAL_FORM_DATA: OpportunityFormData = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"list" | "add" | "stats" | "suggestions">("list");
+  const [activeTab, setActiveTab] = useState<"list" | "add" | "stats" | "suggestions" | "donations">("list");
   const [suggestionFilter, setSuggestionFilter] = useState<
     "all" | "pending" | "approved" | "rejected" | "converted"
   >("all");
@@ -82,6 +82,22 @@ export default function AdminDashboard() {
     refetch: refetchSuggestionStats,
   } = trpc.admin.getSuggestionStats.useQuery(undefined, {
     enabled: user?.role === "admin",
+  });
+
+  const {
+    data: donations_data,
+    isLoading: donationsLoading,
+    refetch: refetchDonations,
+  } = trpc.admin.listDonations.useQuery(undefined, {
+    enabled: user?.role === "admin",
+  });
+
+  const updateDonationStatusMutation = trpc.admin.updateDonationStatus.useMutation({
+    onSuccess: () => refetchDonations(),
+  });
+
+  const toggleDonationWallMutation = trpc.admin.toggleDonationWall.useMutation({
+    onSuccess: () => refetchDonations(),
   });
 
   const updateSuggestionMutation = trpc.admin.updateSuggestionStatus.useMutation({
@@ -346,6 +362,28 @@ export default function AdminDashboard() {
                 <View className="bg-amber-500 rounded-full px-1.5 py-0.5 min-w-[18px] items-center justify-center">
                   <Text className="text-[10px] font-black text-black">
                     {suggestionStats_data?.pending}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setActiveTab("donations")}
+              className={`flex-1 py-3 px-3 rounded-lg flex-row items-center justify-center gap-1.5 ${
+                activeTab === "donations" ? "bg-primary" : "bg-surface border border-border"
+              }`}
+            >
+              <Text
+                className={`text-center font-semibold ${
+                  activeTab === "donations" ? "text-background" : "text-foreground"
+                }`}
+              >
+                Donations
+              </Text>
+              {(donations_data?.length ?? 0) > 0 && (
+                <View className="bg-amber-500 rounded-full px-1.5 py-0.5 min-w-[18px] items-center justify-center">
+                  <Text className="text-[10px] font-black text-black">
+                    {donations_data?.length}
                   </Text>
                 </View>
               )}
@@ -975,6 +1013,200 @@ export default function AdminDashboard() {
                   </Text>
                   <Text className="text-xs text-muted mt-1">
                     No community suggestions match the current filter.
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Donations Management Tab */}
+          {activeTab === "donations" && (
+            <View>
+              {/* Donations Stats Header */}
+              {(() => {
+                const totalCents = (donations_data || [])
+                  .filter((d) => d.status === "completed")
+                  .reduce((sum, d) => sum + d.amountInCents, 0);
+                const completedCount = (donations_data || []).filter((d) => d.status === "completed").length;
+                const pledgedCount = (donations_data || []).filter((d) => d.status === "pledged").length;
+
+                return (
+                  <View className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-6">
+                    <View className="p-4 rounded-2xl bg-surface border border-border">
+                      <Text className="text-xs uppercase font-bold text-muted">Total Funds Raised</Text>
+                      <Text className="text-2xl font-black text-amber-500 mt-1">
+                        ${(totalCents / 100).toFixed(2)} CAD
+                      </Text>
+                      <Text className="text-xs text-muted mt-0.5">
+                        {completedCount} completed contributions
+                      </Text>
+                    </View>
+
+                    <View className="p-4 rounded-2xl bg-surface border border-border">
+                      <Text className="text-xs uppercase font-bold text-muted">Pledges Pending</Text>
+                      <Text className="text-2xl font-black text-foreground mt-1">
+                        {pledgedCount}
+                      </Text>
+                      <Text className="text-xs text-muted mt-0.5">Community pledges</Text>
+                    </View>
+
+                    <View className="p-4 rounded-2xl bg-surface border border-border">
+                      <Text className="text-xs uppercase font-bold text-muted">Total Records</Text>
+                      <Text className="text-2xl font-black text-foreground mt-1">
+                        {donations_data?.length ?? 0}
+                      </Text>
+                      <Text className="text-xs text-muted mt-0.5">All time supporters</Text>
+                    </View>
+                  </View>
+                );
+              })()}
+
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-lg font-bold text-foreground">
+                  Supporter Contributions & Pledges ({donations_data?.length ?? 0})
+                </Text>
+                <TouchableOpacity
+                  onPress={() => refetchDonations()}
+                  className="px-3 py-1.5 rounded-full bg-surface border border-border flex-row items-center gap-1.5"
+                >
+                  <Ionicons name="refresh" size={13} color="#71717a" />
+                  <Text className="text-xs font-semibold text-muted">Refresh</Text>
+                </TouchableOpacity>
+              </View>
+
+              {donationsLoading ? (
+                <View className="p-8 items-center justify-center">
+                  <Text className="text-muted">Loading donations...</Text>
+                </View>
+              ) : (donations_data || []).length > 0 ? (
+                <View className="gap-3.5">
+                  {donations_data!.map((item) => (
+                    <View
+                      key={item.id}
+                      className="bg-surface rounded-2xl border border-border p-4.5 shadow-2xs gap-3"
+                    >
+                      <View className="flex-row flex-wrap items-start justify-between gap-2">
+                        <View className="flex-1 min-w-[200px]">
+                          <View className="flex-row items-center gap-2 mb-1">
+                            <Text className="text-base font-bold text-foreground">
+                              {item.donorName}
+                            </Text>
+                            {item.isAnonymous && (
+                              <View className="px-2 py-0.5 rounded-full bg-zinc-200">
+                                <Text className="text-[10px] font-bold text-zinc-700">
+                                  Anonymous on Wall
+                                </Text>
+                              </View>
+                            )}
+                            <View
+                              className={`px-2 py-0.5 rounded-full ${
+                                item.status === "completed"
+                                  ? "bg-emerald-50 border border-emerald-200"
+                                  : item.status === "pledged"
+                                  ? "bg-amber-50 border border-amber-200"
+                                  : "bg-rose-50 border border-rose-200"
+                              }`}
+                            >
+                              <Text
+                                className={`text-[10px] font-bold uppercase tracking-wider ${
+                                  item.status === "completed"
+                                    ? "text-emerald-700"
+                                    : item.status === "pledged"
+                                    ? "text-amber-700"
+                                    : "text-rose-700"
+                                }`}
+                              >
+                                {item.status}
+                              </Text>
+                            </View>
+                          </View>
+
+                          {item.donorEmail && (
+                            <Text className="text-xs text-muted font-mono">{item.donorEmail}</Text>
+                          )}
+
+                          <Text className="text-[11px] text-muted mt-1">
+                            Method: <Text className="font-semibold text-foreground">{item.paymentMethod}</Text> · Tier: <Text className="font-semibold text-foreground">{item.tier}</Text> · Date: {new Date(item.createdAt).toLocaleString()}
+                          </Text>
+                        </View>
+
+                        <View className="items-end">
+                          <Text className="text-xl font-black text-amber-500">
+                            ${(item.amountInCents / 100).toFixed(2)} {item.currency}
+                          </Text>
+                          <Text className="text-[10px] text-muted">
+                            Wall: {item.showOnWall ? "Visible" : "Hidden"}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {item.message && (
+                        <View className="bg-background/60 p-3 rounded-xl border border-border/60">
+                          <Text className="text-xs text-foreground italic">
+                            "{item.message}"
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Admin Actions */}
+                      <View className="flex-row flex-wrap items-center gap-2 pt-2 border-t border-border/60">
+                        {item.status !== "completed" && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              updateDonationStatusMutation.mutate({ id: item.id, status: "completed" })
+                            }
+                            className="bg-emerald-500 border border-emerald-600 px-3 py-1.5 rounded-xl flex-row items-center gap-1"
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="checkmark" size={13} color="#fff" />
+                            <Text className="text-xs font-bold text-white">Mark Completed</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {item.status !== "pledged" && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              updateDonationStatusMutation.mutate({ id: item.id, status: "pledged" })
+                            }
+                            className="bg-amber-400/20 border border-amber-400 px-3 py-1.5 rounded-xl flex-row items-center gap-1"
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="time-outline" size={13} color="#d97706" />
+                            <Text className="text-xs font-bold text-amber-800">Mark Pledged</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        <TouchableOpacity
+                          onPress={() =>
+                            toggleDonationWallMutation.mutate({
+                              id: item.id,
+                              showOnWall: !item.showOnWall,
+                            })
+                          }
+                          className="bg-surface border border-border px-3 py-1.5 rounded-xl flex-row items-center gap-1"
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name={item.showOnWall ? "eye-off-outline" : "eye-outline"}
+                            size={13}
+                            color="#71717a"
+                          />
+                          <Text className="text-xs font-semibold text-foreground">
+                            {item.showOnWall ? "Hide on Wall" : "Show on Wall"}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View className="bg-surface rounded-2xl border border-border p-8 items-center justify-center">
+                  <Ionicons name="gift-outline" size={32} color="#a1a1aa" />
+                  <Text className="text-base font-semibold text-foreground mt-2">
+                    No contributions yet
+                  </Text>
+                  <Text className="text-xs text-muted mt-1">
+                    Supporter contributions will show up here as they arrive.
                   </Text>
                 </View>
               )}

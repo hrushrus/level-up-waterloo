@@ -367,4 +367,52 @@ export const adminRouter = router({
       const { convertSuggestionToOpportunity } = await import("../db");
       return await convertSuggestionToOpportunity(input.id);
     }),
+
+  /**
+   * List all donations (admin only)
+   */
+  listDonations: adminProcedure
+    .input(
+      z
+        .object({
+          status: z.enum(["completed", "pledged", "refunded"]).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      const { getAllDonations } = await import("../db");
+      return await getAllDonations(input);
+    }),
+
+  /**
+   * Update donation status (admin only)
+   */
+  updateDonationStatus: adminProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(["completed", "pledged", "refunded"]),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { updateDonationStatus } = await import("../db");
+      const success = await updateDonationStatus(input.id, input.status);
+      return { success };
+    }),
+
+  /**
+   * Toggle donation wall visibility (admin only)
+   */
+  toggleDonationWall: adminProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        showOnWall: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { toggleDonationWall } = await import("../db");
+      const success = await toggleDonationWall(input.id, input.showOnWall);
+      return { success };
+    }),
 });

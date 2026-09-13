@@ -71,6 +71,13 @@
       "when": 1789313769432,
       "tag": "0009_odd_tempest",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1789315708205,
+      "tag": "0010_fast_supernaut",
+      "breakpoints": true
     }
   ]
 }

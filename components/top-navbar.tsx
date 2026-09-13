@@ -19,6 +19,7 @@ export function TopNavbar() {
   const isHome = currentTab === "index";
   const isBookmarks = currentTab === "bookmarks";
   const isSuggest = currentTab === "suggest";
+  const isDonate = currentTab === "donate";
   const isProfile = currentTab === "profile";
 
   return (
@@ -129,6 +130,27 @@ export function TopNavbar() {
               }`}
             >
               Suggest
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/donate" as any)}
+            className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 ${
+              isDonate ? "bg-amber-400/15" : ""
+            }`}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isDonate ? "gift" : "gift-outline"}
+              size={15}
+              color={isDonate ? "#d97706" : "#71717a"}
+            />
+            <Text
+              className={`text-sm font-semibold ${
+                isDonate ? "text-amber-700 font-bold" : "text-muted"
+              }`}
+            >
+              Support
             </Text>
           </TouchableOpacity>
         </View>

@@ -31,6 +31,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="donate"
+          options={{
+            title: "Support",
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
             title: "Account",

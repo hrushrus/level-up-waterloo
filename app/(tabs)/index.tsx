@@ -1060,6 +1060,33 @@ export default function HomeScreen() {
                 </View>
               )}
 
+              {/* Community Support Callout Card */}
+              <View className="mt-10 p-6 rounded-3xl bg-amber-400/10 border border-amber-400/30 flex-col sm:flex-row items-center justify-between gap-4">
+                <View className="flex-1">
+                  <View className="flex-row items-center gap-2 mb-1.5">
+                    <Ionicons name="heart" size={16} color="#d97706" />
+                    <Text className="text-xs uppercase tracking-wider font-bold text-amber-800">
+                      Keep Level Up Waterloo Free & Fast
+                    </Text>
+                  </View>
+                  <Text className="text-sm font-bold text-foreground mb-1">
+                    Support Our Community Youth Project
+                  </Text>
+                  <Text className="text-xs text-muted leading-relaxed">
+                    We are 100% community-funded and ad-free. Your support helps cover server hosting, database uptime, and daily crawlers.
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => router.push("/(tabs)/donate" as any)}
+                  className="bg-black border border-amber-400/40 px-5 py-2.5 rounded-full flex-row items-center gap-2 shadow-xs"
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="gift-outline" size={15} color="#fbbf24" />
+                  <Text className="text-sm font-bold text-amber-400">Support Project</Text>
+                </TouchableOpacity>
+              </View>
+
               {/* Supporter Banner & Footer */}
               <View className="items-center justify-center py-10 mt-8 border-t border-border">
                 <Text className="text-xs uppercase tracking-wider text-muted font-bold mb-3">
