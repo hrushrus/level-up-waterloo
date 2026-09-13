@@ -15,9 +15,10 @@ export function TopNavbar() {
 
   // Determine current active tab
   // segments for tabs are usually ["(tabs)"] or ["(tabs)", "bookmarks"] or ["(tabs)", "profile"]
-  const currentTab = segments[1] || "index";
+  const currentTab = (segments[1] as string) || "index";
   const isHome = currentTab === "index";
   const isBookmarks = currentTab === "bookmarks";
+  const isSuggest = currentTab === "suggest";
   const isProfile = currentTab === "profile";
 
   return (
@@ -103,10 +104,48 @@ export function TopNavbar() {
               Saved{bookmarkedIds.size > 0 ? ` (${bookmarkedIds.size})` : ""}
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              if (!user) {
+                router.push("/(auth)/login" as any);
+              } else {
+                router.push("/(tabs)/suggest" as any);
+              }
+            }}
+            className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 ${
+              isSuggest ? "bg-amber-400/15" : ""
+            }`}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isSuggest ? "bulb" : "bulb-outline"}
+              size={15}
+              color={isSuggest ? "#d97706" : "#71717a"}
+            />
+            <Text
+              className={`text-sm font-semibold ${
+                isSuggest ? "text-amber-700 font-bold" : "text-muted"
+              }`}
+            >
+              Suggest
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Right: Integrated Auth / Account */}
         <View className="flex-row items-center gap-2">
+          {user?.role === "admin" && (
+            <TouchableOpacity
+              onPress={() => router.push("/admin" as any)}
+              className="px-2.5 py-1 rounded-full bg-amber-400/20 border border-amber-400 flex-row items-center gap-1"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="shield-checkmark" size={13} color="#d97706" />
+              <Text className="text-xs font-bold text-amber-800">Admin</Text>
+            </TouchableOpacity>
+          )}
+
           {user ? (
             <View className="flex-row items-center gap-2">
               <TouchableOpacity

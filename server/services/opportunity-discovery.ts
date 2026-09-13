@@ -492,6 +492,18 @@ export const DEFAULT_DISCOVERY_SOURCES: DiscoverySource[] = [
       "Municipal student and youth employment listings in day camps, aquatics, parks, and facility support with the City of Waterloo.",
     tags: ["career", "paid", "summer"],
   },
+  {
+    id: "city-waterloo-brokered-worker-snow",
+    name: "City of Waterloo - Snow Removal & Home Maintenance Brokered Worker (Ages 14+)",
+    url: "https://www.waterloo.ca/brokered-worker",
+    category: "experiential_learning",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "City of Waterloo Home Support Services Brokered Worker program. Youth ages 14+ earn $24-$27/hour helping local seniors and residents with winter snow removal (clearing driveways within 24 hours of snowfall) and seasonal property maintenance.",
+    tags: ["career", "paid"],
+  },
 ];
 
 function normalizeWhitespace(value: string): string {

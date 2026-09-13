@@ -1030,15 +1030,33 @@ export default function HomeScreen() {
                   <Text className="text-sm text-muted text-center max-w-sm mb-5 leading-relaxed">
                     We couldn't find any opportunities matching your current filters or search query.
                   </Text>
-                  <TouchableOpacity
-                    onPress={resetAllFilters}
-                    className="bg-black border border-amber-400/40 px-5 py-2.5 rounded-xl shadow-xs"
-                    activeOpacity={0.8}
-                  >
-                    <Text className="text-amber-400 text-xs font-bold">
-                      Clear All Filters & Search
-                    </Text>
-                  </TouchableOpacity>
+                  <View className="flex-row flex-wrap gap-2.5 justify-center">
+                    <TouchableOpacity
+                      onPress={resetAllFilters}
+                      className="bg-black border border-amber-400/40 px-5 py-2.5 rounded-xl shadow-xs"
+                      activeOpacity={0.8}
+                    >
+                      <Text className="text-amber-400 text-xs font-bold">
+                        Clear Filters & Search
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (!user) {
+                          router.push("/(auth)/login" as any);
+                        } else {
+                          router.push("/(tabs)/suggest" as any);
+                        }
+                      }}
+                      className="bg-amber-400 border border-amber-500 px-5 py-2.5 rounded-xl shadow-xs flex-row items-center gap-1.5"
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="bulb" size={14} color="#000" />
+                      <Text className="text-black text-xs font-bold">
+                        Suggest an Opportunity
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
 

@@ -155,3 +155,37 @@ export const bookmarks = mysqlTable("bookmarks", {
 
 export type Bookmark = typeof bookmarks.$inferSelect;
 export type InsertBookmark = typeof bookmarks.$inferInsert;
+
+// Suggestions table for community suggestions (both opportunities and sources)
+export const suggestions = mysqlTable("suggestions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  type: mysqlEnum("type", ["opportunity", "source"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  organization: varchar("organization", { length: 255 }),
+  url: varchar("url", { length: 2048 }),
+  category: mysqlEnum("category", [
+    "extracurricular",
+    "grant",
+    "stem_competition",
+    "sports",
+    "volunteering",
+    "experiential_learning",
+    "other",
+  ]),
+  targetAge: varchar("targetAge", { length: 100 }),
+  description: text("description").notNull(),
+  notes: text("notes"),
+  submitterName: varchar("submitterName", { length: 255 }),
+  submitterEmail: varchar("submitterEmail", { length: 320 }),
+  status: mysqlEnum("status", ["pending", "approved", "rejected", "converted"])
+    .default("pending")
+    .notNull(),
+  adminNotes: text("adminNotes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Suggestion = typeof suggestions.$inferSelect;
+export type InsertSuggestion = typeof suggestions.$inferInsert;
+

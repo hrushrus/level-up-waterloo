@@ -315,4 +315,56 @@ export const adminRouter = router({
   getOpportunityDiscoveryStatus: adminProcedure.query(() => {
     return getOpportunityDiscoverySchedulerStatus();
   }),
+
+  /**
+   * List community suggestions with optional filtering
+   */
+  listSuggestions: adminProcedure
+    .input(
+      z
+        .object({
+          status: z.enum(["pending", "approved", "rejected", "converted"]).optional(),
+          type: z.enum(["opportunity", "source"]).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      const { getAllSuggestions } = await import("../db");
+      return await getAllSuggestions(input);
+    }),
+
+  /**
+   * Get suggestion statistics
+   */
+  getSuggestionStats: adminProcedure.query(async () => {
+    const { getSuggestionStats } = await import("../db");
+    return await getSuggestionStats();
+  }),
+
+  /**
+   * Update suggestion status (approve/reject/archive)
+   */
+  updateSuggestionStatus: adminProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(["pending", "approved", "rejected", "converted"]),
+        adminNotes: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { updateSuggestionStatus } = await import("../db");
+      const success = await updateSuggestionStatus(input.id, input.status, input.adminNotes);
+      return { success };
+    }),
+
+  /**
+   * Convert a suggestion directly to an opportunity
+   */
+  convertSuggestion: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const { convertSuggestionToOpportunity } = await import("../db");
+      return await convertSuggestionToOpportunity(input.id);
+    }),
 });

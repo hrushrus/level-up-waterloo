@@ -1,6 +1,6 @@
 import { eq, or, like, inArray, gte, lte, desc, and, isNull, gt, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, opportunities, Opportunity } from "../drizzle/schema";
+import { InsertUser, users, opportunities, Opportunity, suggestions, Suggestion, InsertSuggestion } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -450,4 +450,171 @@ export async function getAllPageViewStats(): Promise<{
     return { total: 0, pages: {} };
   }
 }
+
+// ---------------------------------------------------------------------------
+// Community Suggestions helpers
+// ---------------------------------------------------------------------------
+
+export async function createSuggestion(
+  data: InsertSuggestion,
+): Promise<{ success: boolean; id?: number; error?: string }> {
+  const db = await getDb();
+  if (!db) {
+    return { success: false, error: "Database not available" };
+  }
+
+  try {
+    const result: any = await db.insert(suggestions).values(data);
+    const insertId = result[0]?.insertId ?? result.insertId;
+    return { success: true, id: insertId ? Number(insertId) : undefined };
+  } catch (error: any) {
+    console.error("[Database] Failed to create suggestion:", error);
+    return { success: false, error: error?.message || "Failed to create suggestion" };
+  }
+}
+
+export async function getAllSuggestions(filter?: {
+  status?: "pending" | "approved" | "rejected" | "converted";
+  type?: "opportunity" | "source";
+}): Promise<Suggestion[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    const conditions = [];
+    if (filter?.status) {
+      conditions.push(eq(suggestions.status, filter.status));
+    }
+    if (filter?.type) {
+      conditions.push(eq(suggestions.type, filter.type));
+    }
+
+    const query = db.select().from(suggestions);
+    if (conditions.length > 0) {
+      return await query.where(and(...conditions)).orderBy(desc(suggestions.createdAt));
+    }
+    return await query.orderBy(desc(suggestions.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to list suggestions:", error);
+    return [];
+  }
+}
+
+export async function getSuggestionById(id: number): Promise<Suggestion | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const result = await db
+      .select()
+      .from(suggestions)
+      .where(eq(suggestions.id, id))
+      .limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error(`[Database] Failed to get suggestion ${id}:`, error);
+    return null;
+  }
+}
+
+export async function updateSuggestionStatus(
+  id: number,
+  status: "pending" | "approved" | "rejected" | "converted",
+  adminNotes?: string,
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    const updateData: Record<string, any> = { status };
+    if (adminNotes !== undefined) {
+      updateData.adminNotes = adminNotes;
+    }
+    await db.update(suggestions).set(updateData).where(eq(suggestions.id, id));
+    return true;
+  } catch (error) {
+    console.error(`[Database] Failed to update suggestion status ${id}:`, error);
+    return false;
+  }
+}
+
+export async function convertSuggestionToOpportunity(id: number): Promise<{
+  success: boolean;
+  opportunityId?: number;
+  error?: string;
+}> {
+  const db = await getDb();
+  if (!db) return { success: false, error: "Database not available" };
+
+  try {
+    const suggestion = await getSuggestionById(id);
+    if (!suggestion) {
+      return { success: false, error: "Suggestion not found" };
+    }
+
+    const newOpp: any = {
+      title: suggestion.title,
+      description: suggestion.description,
+      category: suggestion.category || "other",
+      externalLink: suggestion.url || null,
+      submittedBy: suggestion.organization || suggestion.submitterName || "Community Suggestion",
+      submitterEmail: suggestion.submitterEmail || "community@levelupwaterloo.local",
+      isApproved: true,
+      level: "both",
+      type: "in_person",
+      duration: "long",
+      tags: [],
+    };
+
+    const insertResult: any = await db.insert(opportunities).values(newOpp);
+    const oppId = Number(insertResult[0]?.insertId ?? insertResult.insertId);
+
+    await db
+      .update(suggestions)
+      .set({
+        status: "converted",
+        adminNotes: suggestion.adminNotes
+          ? `${suggestion.adminNotes}\nConverted to opportunity #${oppId}`
+          : `Converted to opportunity #${oppId}`,
+      })
+      .where(eq(suggestions.id, id));
+
+    return { success: true, opportunityId: oppId };
+  } catch (error: any) {
+    console.error(`[Database] Failed to convert suggestion ${id}:`, error);
+    return { success: false, error: error?.message || "Conversion failed" };
+  }
+}
+
+export async function getSuggestionStats(): Promise<{
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  converted: number;
+  opportunities: number;
+  sources: number;
+}> {
+  const db = await getDb();
+  if (!db) {
+    return { total: 0, pending: 0, approved: 0, rejected: 0, converted: 0, opportunities: 0, sources: 0 };
+  }
+
+  try {
+    const all = await db.select().from(suggestions);
+    return {
+      total: all.length,
+      pending: all.filter((s) => s.status === "pending").length,
+      approved: all.filter((s) => s.status === "approved").length,
+      rejected: all.filter((s) => s.status === "rejected").length,
+      converted: all.filter((s) => s.status === "converted").length,
+      opportunities: all.filter((s) => s.type === "opportunity").length,
+      sources: all.filter((s) => s.type === "source").length,
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get suggestion stats:", error);
+    return { total: 0, pending: 0, approved: 0, rejected: 0, converted: 0, opportunities: 0, sources: 0 };
+  }
+}
+
 

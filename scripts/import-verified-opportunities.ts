@@ -264,6 +264,20 @@ const verifiedOpportunities: InsertOpportunity[] = [
     type: "in_person",
     duration: "short",
   },
+  {
+    title: "City of Waterloo Snow Removal & Home Maintenance Brokered Worker (Ages 14+)",
+    description:
+      "The City of Waterloo Home Support Services Brokered Worker program connects local residents and seniors with youth and community members for seasonal outdoor home maintenance. In the winter snow season (November through March), brokered workers shovel and clear driveways within 24 hours of snowfall. Brokered workers are self-employed, choose how many clients to support, and are paid directly by homeowners at $24.00/hour ($27.00/hour when supplying motorized equipment like a snow blower). Open to applicants ages 14 and older.",
+    category: "experiential_learning",
+    externalLink: "https://www.waterloo.ca/brokered-worker",
+    submittedBy: "City of Waterloo Home Support Services",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: new Date("2027-03-31T23:59:59-04:00"),
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
 ];
 
 function inferTags(opportunity: InsertOpportunity): OpportunityTag[] {
@@ -287,16 +301,16 @@ function inferTags(opportunity: InsertOpportunity): OpportunityTag[] {
   if (opportunity.category === "sports" || /\b(swim|cycling|sports|games)\b/.test(text)) {
     tags.add("sports");
   }
-  if (/\b(career|employment|workplace|apprentice)\b/.test(text)) tags.add("career");
+  if (/\b(career|employment|workplace|apprentice|job|jobs|worker)\b/.test(text)) tags.add("career");
   if (/\b(mentor|mentorship)\b/.test(text)) tags.add("mentorship");
   if (/\b(environment|environmental|conservation|climate|nature|sustainability)\b/.test(text)) {
     tags.add("environment");
   }
   if (/\b(competition|contest|challenge|compete)\b/.test(text)) tags.add("competition");
   if (/\b(camp|camps)\b/.test(text)) tags.add("camp");
-  if (/\b(course|class|workshop|training|sessions|program)\b/.test(text)) tags.add("workshop");
+  if (/\b(course|class|workshop|training|sessions)\b/.test(text)) tags.add("workshop");
   if (/\bfree\b/.test(text)) tags.add("free");
-  if (/\b(paid role|paid position|salary|wage|stipend|compensation|employment)\b/.test(text)) {
+  if (/\b(paid|salary|wage|stipend|compensation|employment|\$\d+)\b/.test(text)) {
     tags.add("paid");
   }
   if (/\b(summer|june|july|august)\b/.test(text)) tags.add("summer");

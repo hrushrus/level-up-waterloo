@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, Linking } from "react-native";
 import { useRouter } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { trpc } from "@/lib/trpc";
 import { ScreenContainer } from "@/components/screen-container";
 import { OPPORTUNITY_TAGS, type OpportunityTag } from "@/shared/opportunity-tags";
@@ -37,7 +38,10 @@ const INITIAL_FORM_DATA: OpportunityFormData = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"list" | "add" | "stats">("list");
+  const [activeTab, setActiveTab] = useState<"list" | "add" | "stats" | "suggestions">("list");
+  const [suggestionFilter, setSuggestionFilter] = useState<
+    "all" | "pending" | "approved" | "rejected" | "converted"
+  >("all");
   const [formData, setFormData] = useState<OpportunityFormData>(INITIAL_FORM_DATA);
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -62,11 +66,57 @@ export default function AdminDashboard() {
     enabled: user?.role === "admin",
   });
 
+  const {
+    data: suggestions_data,
+    isLoading: suggestionsLoading,
+    refetch: refetchSuggestions,
+  } = trpc.admin.listSuggestions.useQuery(
+    suggestionFilter === "all" ? undefined : { status: suggestionFilter },
+    {
+      enabled: user?.role === "admin",
+    },
+  );
+
+  const {
+    data: suggestionStats_data,
+    refetch: refetchSuggestionStats,
+  } = trpc.admin.getSuggestionStats.useQuery(undefined, {
+    enabled: user?.role === "admin",
+  });
+
+  const updateSuggestionMutation = trpc.admin.updateSuggestionStatus.useMutation({
+    onSuccess: () => {
+      refetchSuggestions();
+      refetchSuggestionStats();
+    },
+  });
+
+  const convertSuggestionMutation = trpc.admin.convertSuggestion.useMutation({
+    onSuccess: (res) => {
+      refetchSuggestions();
+      refetchSuggestionStats();
+      refetchOpps();
+      refetchStats();
+      Alert.alert("Success", `Suggestion converted to opportunity #${res.opportunityId}!`);
+    },
+    onError: (err) => {
+      Alert.alert("Error", err.message || "Failed to convert suggestion");
+    },
+  });
+
   const addOppMutation = trpc.admin.addOpportunity.useMutation();
   const inactivateMutation = trpc.admin.inactivateOpportunity.useMutation();
   const deleteMutation = trpc.admin.deleteOpportunity.useMutation();
 
-  const loading = oppsLoading || statsLoading || addOppMutation.isPending || inactivateMutation.isPending || deleteMutation.isPending;
+  const loading =
+    oppsLoading ||
+    statsLoading ||
+    suggestionsLoading ||
+    addOppMutation.isPending ||
+    inactivateMutation.isPending ||
+    deleteMutation.isPending ||
+    updateSuggestionMutation.isPending ||
+    convertSuggestionMutation.isPending;
 
   // Check for auth errors
   useEffect(() => {
@@ -277,6 +327,28 @@ export default function AdminDashboard() {
               >
                 Stats
               </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setActiveTab("suggestions")}
+              className={`flex-1 py-3 px-3 rounded-lg flex-row items-center justify-center gap-1.5 ${
+                activeTab === "suggestions" ? "bg-primary" : "bg-surface border border-border"
+              }`}
+            >
+              <Text
+                className={`text-center font-semibold ${
+                  activeTab === "suggestions" ? "text-background" : "text-foreground"
+                }`}
+              >
+                Suggestions
+              </Text>
+              {(suggestionStats_data?.pending ?? 0) > 0 && (
+                <View className="bg-amber-500 rounded-full px-1.5 py-0.5 min-w-[18px] items-center justify-center">
+                  <Text className="text-[10px] font-black text-black">
+                    {suggestionStats_data?.pending}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -623,6 +695,289 @@ export default function AdminDashboard() {
                   )}
                 </View>
               </View>
+            </View>
+          )}
+
+          {/* Suggestions Tab */}
+          {activeTab === "suggestions" && (
+            <View>
+              {/* Header & Stats Banner */}
+              <View className="mb-5">
+                <Text className="text-xl font-bold text-foreground">
+                  Community Suggestions ({suggestionStats_data?.total ?? 0})
+                </Text>
+                <Text className="text-xs text-muted mt-1">
+                  Review opportunities and sources submitted by students, parents, and community members.
+                </Text>
+
+                {/* Stats Row */}
+                <View className="flex-row flex-wrap gap-3 mt-4">
+                  <View className="flex-1 min-w-[120px] bg-surface border border-border p-3.5 rounded-xl">
+                    <Text className="text-xs text-muted font-medium">Pending Review</Text>
+                    <Text className="text-2xl font-black text-amber-500 mt-1">
+                      {suggestionStats_data?.pending ?? 0}
+                    </Text>
+                  </View>
+                  <View className="flex-1 min-w-[120px] bg-surface border border-border p-3.5 rounded-xl">
+                    <Text className="text-xs text-muted font-medium">Converted to Opps</Text>
+                    <Text className="text-2xl font-black text-blue-500 mt-1">
+                      {suggestionStats_data?.converted ?? 0}
+                    </Text>
+                  </View>
+                  <View className="flex-1 min-w-[120px] bg-surface border border-border p-3.5 rounded-xl">
+                    <Text className="text-xs text-muted font-medium">Approved</Text>
+                    <Text className="text-2xl font-black text-emerald-500 mt-1">
+                      {suggestionStats_data?.approved ?? 0}
+                    </Text>
+                  </View>
+                  <View className="flex-1 min-w-[120px] bg-surface border border-border p-3.5 rounded-xl">
+                    <Text className="text-xs text-muted font-medium">Rejected</Text>
+                    <Text className="text-2xl font-black text-rose-500 mt-1">
+                      {suggestionStats_data?.rejected ?? 0}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Status Filter Chips */}
+              <View className="flex-row flex-wrap gap-2 mb-4">
+                {(["all", "pending", "converted", "approved", "rejected"] as const).map((filter) => {
+                  const active = suggestionFilter === filter;
+                  return (
+                    <TouchableOpacity
+                      key={filter}
+                      onPress={() => setSuggestionFilter(filter)}
+                      className={`px-3 py-1.5 rounded-full border ${
+                        active
+                          ? "bg-amber-400/20 border-amber-500"
+                          : "bg-surface border-border"
+                      }`}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        className={`text-xs font-bold capitalize ${
+                          active ? "text-amber-800" : "text-muted"
+                        }`}
+                      >
+                        {filter}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Suggestions List */}
+              {suggestionsLoading ? (
+                <View className="py-12 items-center justify-center">
+                  <Text className="text-sm text-muted">Loading suggestions...</Text>
+                </View>
+              ) : suggestions_data && suggestions_data.length > 0 ? (
+                <View className="gap-3">
+                  {suggestions_data.map((item) => (
+                    <View
+                      key={item.id}
+                      className="bg-surface rounded-2xl p-5 border border-border shadow-xs"
+                    >
+                      {/* Top Badges */}
+                      <View className="flex-row items-center justify-between gap-2 mb-2.5 flex-wrap">
+                        <View className="flex-row items-center gap-2">
+                          <View
+                            className={`px-2.5 py-1 rounded-md flex-row items-center gap-1 ${
+                              item.type === "opportunity"
+                                ? "bg-amber-400/20 border border-amber-400/40"
+                                : "bg-blue-400/20 border border-blue-400/40"
+                            }`}
+                          >
+                            <Ionicons
+                              name={item.type === "opportunity" ? "star" : "globe"}
+                              size={12}
+                              color={item.type === "opportunity" ? "#d97706" : "#2563eb"}
+                            />
+                            <Text
+                              className={`text-[11px] font-bold uppercase tracking-wider ${
+                                item.type === "opportunity" ? "text-amber-800" : "text-blue-800"
+                              }`}
+                            >
+                              {item.type}
+                            </Text>
+                          </View>
+
+                          {item.category && (
+                            <View className="bg-background px-2.5 py-1 rounded-md border border-border">
+                              <Text className="text-[11px] font-semibold text-muted capitalize">
+                                {item.category.replace("_", " ")}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+
+                        {/* Status Badge */}
+                        <View
+                          className={`px-2.5 py-0.5 rounded-full ${
+                            item.status === "pending"
+                              ? "bg-amber-100 border border-amber-300"
+                              : item.status === "converted"
+                              ? "bg-blue-100 border border-blue-300"
+                              : item.status === "approved"
+                              ? "bg-emerald-100 border border-emerald-300"
+                              : "bg-rose-100 border border-rose-300"
+                          }`}
+                        >
+                          <Text
+                            className={`text-[11px] font-bold capitalize ${
+                              item.status === "pending"
+                                ? "text-amber-800"
+                                : item.status === "converted"
+                                ? "text-blue-800"
+                                : item.status === "approved"
+                                ? "text-emerald-800"
+                                : "text-rose-800"
+                            }`}
+                          >
+                            {item.status}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Title & Organization */}
+                      <Text className="text-lg font-bold text-foreground mb-1">
+                        {item.title}
+                      </Text>
+                      {item.organization && (
+                        <Text className="text-xs font-semibold text-muted mb-2">
+                          Organization: {item.organization}
+                        </Text>
+                      )}
+
+                      {/* URL Link */}
+                      {item.url && (
+                        <TouchableOpacity
+                          onPress={() => item.url && Linking.openURL(item.url)}
+                          className="flex-row items-center gap-1.5 mb-3"
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="open-outline" size={14} color="#d97706" />
+                          <Text className="text-xs font-semibold text-amber-700 underline" numberOfLines={1}>
+                            {item.url}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Target Age */}
+                      {item.targetAge && (
+                        <Text className="text-xs text-muted mb-2">
+                          <Text className="font-bold text-foreground">Target Age/Grade:</Text> {item.targetAge}
+                        </Text>
+                      )}
+
+                      {/* Description */}
+                      <Text className="text-sm text-foreground mb-3 leading-relaxed">
+                        {item.description}
+                      </Text>
+
+                      {/* Notes */}
+                      {item.notes && (
+                        <View className="bg-background rounded-xl p-3 border border-border mb-3">
+                          <Text className="text-xs font-bold text-muted mb-1">Submitter Notes / Tips:</Text>
+                          <Text className="text-xs text-foreground">{item.notes}</Text>
+                        </View>
+                      )}
+
+                      {/* Admin Notes */}
+                      {item.adminNotes && (
+                        <View className="bg-primary/5 rounded-xl p-3 border border-primary/20 mb-3">
+                          <Text className="text-xs font-bold text-primary mb-1">Admin Notes:</Text>
+                          <Text className="text-xs text-foreground">{item.adminNotes}</Text>
+                        </View>
+                      )}
+
+                      {/* Submitter & Date Footer */}
+                      <View className="pt-3 border-t border-border flex-row items-center justify-between text-xs text-muted flex-wrap gap-2 mb-3">
+                        <Text className="text-xs text-muted">
+                          Submitted by: <Text className="font-semibold text-foreground">{item.submitterName || "Anonymous"}</Text>
+                          {item.submitterEmail ? ` (${item.submitterEmail})` : ""}
+                        </Text>
+                        <Text className="text-xs text-muted">
+                          {new Date(item.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </Text>
+                      </View>
+
+                      {/* Action Buttons */}
+                      <View className="flex-row flex-wrap gap-2">
+                        {item.type === "opportunity" && item.status !== "converted" && (
+                          <TouchableOpacity
+                            onPress={() => convertSuggestionMutation.mutate({ id: item.id })}
+                            disabled={convertSuggestionMutation.isPending}
+                            className="bg-black border border-amber-400/50 px-3.5 py-2 rounded-xl flex-row items-center gap-1.5"
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="flash" size={14} color="#FBBF24" />
+                            <Text className="text-xs font-bold text-amber-400">
+                              Convert to Live Opportunity
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {item.status !== "approved" && item.status !== "converted" && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              updateSuggestionMutation.mutate({ id: item.id, status: "approved" })
+                            }
+                            disabled={updateSuggestionMutation.isPending}
+                            className="bg-emerald-50 border border-emerald-300 px-3 py-2 rounded-xl flex-row items-center gap-1"
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="checkmark" size={14} color="#059669" />
+                            <Text className="text-xs font-bold text-emerald-800">Approve</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {item.status !== "rejected" && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              updateSuggestionMutation.mutate({ id: item.id, status: "rejected" })
+                            }
+                            disabled={updateSuggestionMutation.isPending}
+                            className="bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl flex-row items-center gap-1"
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="close" size={14} color="#e11d48" />
+                            <Text className="text-xs font-bold text-rose-800">Decline</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {item.status === "rejected" && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              updateSuggestionMutation.mutate({ id: item.id, status: "pending" })
+                            }
+                            disabled={updateSuggestionMutation.isPending}
+                            className="bg-background border border-border px-3 py-2 rounded-xl flex-row items-center gap-1"
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="refresh" size={14} color="#71717a" />
+                            <Text className="text-xs font-bold text-muted">Reopen as Pending</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View className="bg-surface rounded-2xl border border-border p-8 items-center justify-center">
+                  <Ionicons name="file-tray-outline" size={32} color="#a1a1aa" />
+                  <Text className="text-base font-semibold text-foreground mt-2">
+                    No suggestions found
+                  </Text>
+                  <Text className="text-xs text-muted mt-1">
+                    No community suggestions match the current filter.
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         </View>

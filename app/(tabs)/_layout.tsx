@@ -25,6 +25,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="suggest"
+          options={{
+            title: "Suggest",
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
             title: "Account",
