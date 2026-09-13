@@ -17,6 +17,8 @@ import { useBookmarks } from "@/lib/bookmark-context";
 import { fetchOpportunity } from "@/lib/opportunities-api";
 import { PageViewBadge } from "@/components/page-view-counter";
 import { getCategoryMeta, getDeadlineInfo } from "@/lib/category-helpers";
+import { ShareModal } from "@/components/share-modal";
+import { getOpportunityShareUrl } from "@/lib/share-utils";
 
 interface Opportunity {
   id: number;
@@ -37,6 +39,7 @@ export default function OpportunityDetailScreen() {
   const { id } = useLocalSearchParams();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const opportunityId = typeof id === "string" ? parseInt(id, 10) : 0;
 
@@ -63,24 +66,8 @@ export default function OpportunityDetailScreen() {
     }
   };
 
-  const handleShare = async () => {
-    if (!opportunity) return;
-    try {
-      if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(
-          typeof window !== "undefined" ? window.location.href : (opportunity.externalLink || "")
-        );
-        alert("Link copied to clipboard!");
-        return;
-      }
-      await Share.share({
-        message: `Check out this student opportunity: ${opportunity.title}\n\n${opportunity.description}\n\n${opportunity.externalLink || ""}`,
-        title: opportunity.title,
-        url: opportunity.externalLink || undefined,
-      });
-    } catch (error) {
-      console.error("Failed to share:", error);
-    }
+  const handleShare = () => {
+    setShareModalOpen(true);
   };
 
   const formatLevel = (level: string) => {
@@ -408,6 +395,18 @@ export default function OpportunityDetailScreen() {
                 </Text>
               </TouchableOpacity>
 
+              {/* Share Button */}
+              <TouchableOpacity
+                onPress={handleShare}
+                className="flex-row items-center gap-2 px-4 py-2.5 rounded-xl border bg-surface border-border hover:bg-zinc-50"
+                activeOpacity={0.8}
+              >
+                <Ionicons name="share-social-outline" size={17} color="#d97706" />
+                <Text className="text-xs font-bold text-foreground">
+                  Share
+                </Text>
+              </TouchableOpacity>
+
               {opportunity.externalLink && (
                 <TouchableOpacity
                   onPress={handleOpenLink}
@@ -424,6 +423,16 @@ export default function OpportunityDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <ShareModal
+        visible={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={opportunity.title}
+        summary={opportunity.description}
+        url={getOpportunityShareUrl(opportunity.id)}
+        type="opportunity"
+        category={categoryMeta.shortLabel}
+      />
     </ScreenContainer>
   );
 }

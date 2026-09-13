@@ -28,6 +28,8 @@ import {
   CATEGORIES_CONFIG,
   getCategoryMeta,
 } from "@/lib/category-helpers";
+import { ShareModal } from "@/components/share-modal";
+import { getPlatformShareUrl } from "@/lib/share-utils";
 
 const LEVELS = [
   { id: "both", label: "All Levels" },
@@ -71,6 +73,7 @@ export default function HomeScreen() {
   const [sortBy, setSortBy] = useState<"newest" | "deadline" | "alphabetical">("newest");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sharePlatformModalOpen, setSharePlatformModalOpen] = useState(false);
 
   // Fetch opportunities query
   const {
@@ -221,14 +224,26 @@ export default function HomeScreen() {
               elevation: 4,
             }}
           >
-            {/* Top Badge */}
-            <View className="flex-row items-center gap-2 mb-3">
+            {/* Top Badges & Share Hub Action */}
+            <View className="flex-row items-center justify-between gap-2 mb-3">
               <View className="bg-amber-400/15 border border-amber-400/30 px-3 py-1 rounded-full flex-row items-center gap-1.5">
                 <Ionicons name="sparkles" size={13} color="#f59e0b" />
                 <Text className="text-xs font-bold text-amber-400 tracking-wide">
                   Waterloo Region Student Hub
                 </Text>
               </View>
+
+              <TouchableOpacity
+                onPress={() => setSharePlatformModalOpen(true)}
+                className="bg-zinc-800/90 hover:bg-zinc-700/90 border border-zinc-700 px-3 py-1 rounded-full flex-row items-center gap-1.5 shadow-xs"
+                activeOpacity={0.8}
+                accessibilityLabel="Share Level Up Waterloo"
+              >
+                <Ionicons name="share-social-outline" size={13} color="#fbbf24" />
+                <Text className="text-xs font-bold text-zinc-200">
+                  Share Hub
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Headline & Subtitle */}
@@ -1060,6 +1075,34 @@ export default function HomeScreen() {
                 </View>
               )}
 
+              {/* Spread the Word / Share Platform Callout Card */}
+              <View className="mt-8 p-6 rounded-3xl bg-surface border border-border flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+                <View className="flex-1">
+                  <View className="flex-row items-center gap-2 mb-1.5">
+                    <Ionicons name="megaphone" size={16} color="#d97706" />
+                    <Text className="text-xs uppercase tracking-wider font-bold text-amber-800">
+                      Spread the Word
+                    </Text>
+                  </View>
+                  <Text className="text-sm font-bold text-foreground mb-1">
+                    Share Level Up Waterloo With Classmates & Teachers
+                  </Text>
+                  <Text className="text-xs text-muted leading-relaxed">
+                    Help other local students discover jobs, volunteer hours, and grants. Share the platform in your school group chats, clubs, or with educators.
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setSharePlatformModalOpen(true)}
+                  className="bg-amber-400 hover:bg-amber-500 border border-amber-500 px-5 py-2.5 rounded-full flex-row items-center gap-2 shadow-xs"
+                  activeOpacity={0.85}
+                  accessibilityLabel="Share Level Up Waterloo platform"
+                >
+                  <Ionicons name="share-social" size={15} color="#000" />
+                  <Text className="text-sm font-black text-black">Share Platform</Text>
+                </TouchableOpacity>
+              </View>
+
               {/* Community Support Callout Card */}
               <View className="mt-10 p-6 rounded-3xl bg-amber-400/10 border border-amber-400/30 flex-col sm:flex-row items-center justify-between gap-4">
                 <View className="flex-1">
@@ -1116,6 +1159,15 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <ShareModal
+        visible={sharePlatformModalOpen}
+        onClose={() => setSharePlatformModalOpen(false)}
+        title="Level Up Waterloo"
+        summary="Discover free internships, volunteer hours, STEM competitions, scholarships, and extracurricular programs for students across Waterloo Region."
+        url={getPlatformShareUrl()}
+        type="website"
+      />
     </ScreenContainer>
   );
 }

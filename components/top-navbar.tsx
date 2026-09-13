@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Image, Platform } from "react-native";
 import { useRouter, useSegments } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "@/lib/auth-context";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useColors } from "@/hooks/use-colors";
+import { ShareModal } from "@/components/share-modal";
+import { getPlatformShareUrl } from "@/lib/share-utils";
 
 export function TopNavbar() {
   const router = useRouter();
@@ -12,6 +14,7 @@ export function TopNavbar() {
   const { user, logout } = useAuth();
   const { bookmarkedIds } = useBookmarks();
   const colors = useColors();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Determine current active tab
   // segments for tabs are usually ["(tabs)"] or ["(tabs)", "bookmarks"] or ["(tabs)", "profile"]
@@ -153,6 +156,18 @@ export function TopNavbar() {
               Support
             </Text>
           </TouchableOpacity>
+
+          {/* Share Platform Button */}
+          <TouchableOpacity
+            onPress={() => setShareModalOpen(true)}
+            className="px-3 py-1.5 rounded-full flex-row items-center gap-1.5 hover:bg-amber-400/10"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="share-social-outline" size={15} color="#d97706" />
+            <Text className="text-sm font-semibold text-muted">
+              Share
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Right: Integrated Auth / Account */}
@@ -222,6 +237,15 @@ export function TopNavbar() {
           )}
         </View>
       </View>
+
+      <ShareModal
+        visible={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title="Level Up Waterloo"
+        summary="Discover free internships, volunteer hours, STEM competitions, scholarships, and extracurriculars for Waterloo Region students."
+        url={getPlatformShareUrl()}
+        type="website"
+      />
     </View>
   );
 }

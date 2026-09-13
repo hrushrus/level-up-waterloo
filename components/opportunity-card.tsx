@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { getCategoryMeta, getDeadlineInfo } from "@/lib/category-helpers";
 import type { OpportunityTag } from "@/shared/opportunity-tags";
+import { ShareModal } from "@/components/share-modal";
+import { getOpportunityShareUrl } from "@/lib/share-utils";
 
 export interface OpportunityItem {
   id: number;
@@ -31,6 +33,7 @@ export function OpportunityCard({
   onToggleBookmark,
   onPress,
 }: OpportunityCardProps) {
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const categoryMeta = getCategoryMeta(opportunity.category);
   const deadlineInfo = getDeadlineInfo(opportunity.deadline);
 
@@ -127,25 +130,40 @@ export function OpportunityCard({
               </View>
             </View>
 
-            {/* Bookmark Heart Button */}
-            <TouchableOpacity
-              onPress={(event) => {
-                event.stopPropagation();
-                onToggleBookmark(opportunity.id);
-              }}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              className="p-1.5 rounded-full hover:bg-black/5"
-              activeOpacity={0.7}
-              accessibilityLabel={
-                isBookmarked ? "Remove from bookmarks" : "Save opportunity"
-              }
-            >
-              <Ionicons
-                name={isBookmarked ? "heart" : "heart-outline"}
-                size={22}
-                color={isBookmarked ? "#ef4444" : "#94a3b8"}
-              />
-            </TouchableOpacity>
+            {/* Action Buttons: Share + Bookmark */}
+            <View className="flex-row items-center gap-0.5">
+              <TouchableOpacity
+                onPress={(event) => {
+                  event.stopPropagation();
+                  setShareModalOpen(true);
+                }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="p-1.5 rounded-full hover:bg-black/5"
+                activeOpacity={0.7}
+                accessibilityLabel="Share opportunity"
+              >
+                <Ionicons name="share-social-outline" size={18} color="#71717a" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={(event) => {
+                  event.stopPropagation();
+                  onToggleBookmark(opportunity.id);
+                }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="p-1.5 rounded-full hover:bg-black/5"
+                activeOpacity={0.7}
+                accessibilityLabel={
+                  isBookmarked ? "Remove from bookmarks" : "Save opportunity"
+                }
+              >
+                <Ionicons
+                  name={isBookmarked ? "heart" : "heart-outline"}
+                  size={20}
+                  color={isBookmarked ? "#ef4444" : "#94a3b8"}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Title */}
@@ -215,6 +233,16 @@ export function OpportunityCard({
           </View>
         </View>
       </View>
+
+      <ShareModal
+        visible={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={opportunity.title}
+        summary={opportunity.description}
+        url={getOpportunityShareUrl(opportunity.id)}
+        type="opportunity"
+        category={categoryMeta.shortLabel}
+      />
     </TouchableOpacity>
   );
 }
