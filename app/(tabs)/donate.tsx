@@ -66,7 +66,7 @@ export default function DonateScreen() {
 
   // e-Transfer destination email
   const DONATION_EMAIL =
-    process.env.EXPO_PUBLIC_DONATION_ETRANSFER_EMAIL || "levelupwaterloo@gmail.com";
+    process.env.EXPO_PUBLIC_DONATION_ETRANSFER_EMAIL || "waterloolevelup@gmail.com";
   const [copiedEmail, setCopiedEmail] = useState(false);
 
   const handleCopyEmail = () => {
@@ -855,7 +855,7 @@ export default function DonateScreen() {
                   Can our organization or company become an official sponsor?
                 </Text>
                 <Text className="text-xs text-muted leading-relaxed">
-                  Yes! Local businesses, non-profits, and educational institutions interested in supporting student opportunities across Waterloo Region can contact us at <Text className="font-semibold text-foreground">support@levelupwaterloo.local</Text> for sponsor recognition and partnership.
+                  Yes! Local businesses, non-profits, and educational institutions interested in supporting student opportunities across Waterloo Region can contact us at <Text className="font-semibold text-foreground">waterloolevelup@gmail.com</Text> for sponsor recognition and partnership.
                 </Text>
               </View>
 
