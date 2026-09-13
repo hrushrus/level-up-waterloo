@@ -1,14 +1,22 @@
-import { ScrollView, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import React, { useState } from "react";
+import {
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  Image,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/lib/auth-context";
-import { useColors } from "@/hooks/use-colors";
 
 export default function SignupScreen() {
   const router = useRouter();
   const { signup, isLoading, error, clearError } = useAuth();
-  const colors = useColors();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -60,201 +68,274 @@ export default function SignupScreen() {
 
     try {
       await signup(email, password, name);
-      // Navigation will be handled by route guards
       router.replace("/(tabs)");
     } catch (err) {
-      // Error is already set in context
       console.error("Signup failed:", err);
     }
   };
 
-  const handleLoginPress = () => {
-    router.replace("/(auth)/login" as any);
-  };
-
-  const handleBackToBrowsing = () => {
-    router.replace("/(tabs)" as any);
-  };
-
   return (
-    <ScreenContainer className="bg-background">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
-        <View className="flex-1 justify-center px-6 py-8">
-          {/* Back to Browsing Button */}
-          <TouchableOpacity
-            onPress={handleBackToBrowsing}
-            className="flex-row items-center mb-4 py-2 self-start"
-            activeOpacity={0.7}
-          >
-            <Text className="text-primary text-base font-semibold">← Back to Opportunities</Text>
-          </TouchableOpacity>
-
-          {/* Header */}
-          <View className="mb-8 items-center">
-            <Text className="text-4xl font-bold text-foreground mb-2">Create Account</Text>
-            <Text className="text-base text-muted text-center">
-              Join LevelUp Waterloo to discover opportunities
-            </Text>
-          </View>
-
-          {/* Error Message */}
-          {error && (
-            <View className="mb-6 bg-error/10 border border-error rounded-lg p-4">
-              <Text className="text-error text-sm font-medium">{error}</Text>
-            </View>
-          )}
-
-          {/* Name Field */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-foreground mb-2">Full Name</Text>
-            <TextInput
-              className="w-full px-4 py-3 border border-border rounded-lg bg-surface text-foreground text-base"
-              placeholder="John Doe"
-              placeholderTextColor={colors.muted}
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                if (validationErrors.name) {
-                  setValidationErrors((prev) => {
-                    const next = { ...prev };
-                    delete next.name;
-                    return next;
-                  });
-                }
-              }}
-              editable={!isLoading}
-              autoCapitalize="words"
-            />
-            {validationErrors.name && (
-              <Text className="text-error text-xs mt-1">{validationErrors.name}</Text>
-            )}
-          </View>
-
-          {/* Email Field */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-foreground mb-2">Email</Text>
-            <TextInput
-              className="w-full px-4 py-3 border border-border rounded-lg bg-surface text-foreground text-base"
-              placeholder="you@example.com"
-              placeholderTextColor={colors.muted}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (validationErrors.email) {
-                  setValidationErrors((prev) => {
-                    const next = { ...prev };
-                    delete next.email;
-                    return next;
-                  });
-                }
-              }}
-              editable={!isLoading}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
-            {validationErrors.email && (
-              <Text className="text-error text-xs mt-1">{validationErrors.email}</Text>
-            )}
-          </View>
-
-          {/* Password Field */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-foreground mb-2">Password</Text>
-            <View className="flex-row items-center border border-border rounded-lg bg-surface overflow-hidden">
-              <TextInput
-                className="flex-1 px-4 py-3 text-foreground text-base"
-                placeholder="••••••••"
-                placeholderTextColor={colors.muted}
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (validationErrors.password) {
-                    setValidationErrors((prev) => {
-                      const next = { ...prev };
-                      delete next.password;
-                      return next;
-                    });
-                  }
-                }}
-                editable={!isLoading}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity
-                className="px-4 py-3"
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={isLoading}
-              >
-                <Text className="text-primary text-sm font-semibold">
-                  {showPassword ? "Hide" : "Show"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {validationErrors.password && (
-              <Text className="text-error text-xs mt-1">{validationErrors.password}</Text>
-            )}
-            <Text className="text-xs text-muted mt-2">
-              At least 8 characters with uppercase, lowercase, and numbers
-            </Text>
-          </View>
-
-          {/* Confirm Password Field */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-foreground mb-2">Confirm Password</Text>
-            <View className="flex-row items-center border border-border rounded-lg bg-surface overflow-hidden">
-              <TextInput
-                className="flex-1 px-4 py-3 text-foreground text-base"
-                placeholder="••••••••"
-                placeholderTextColor={colors.muted}
-                value={confirmPassword}
-                onChangeText={(text) => {
-                  setConfirmPassword(text);
-                  if (validationErrors.confirmPassword) {
-                    setValidationErrors((prev) => {
-                      const next = { ...prev };
-                      delete next.confirmPassword;
-                      return next;
-                    });
-                  }
-                }}
-                editable={!isLoading}
-                secureTextEntry={!showConfirmPassword}
-              />
-              <TouchableOpacity
-                className="px-4 py-3"
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={isLoading}
-              >
-                <Text className="text-primary text-sm font-semibold">
-                  {showConfirmPassword ? "Hide" : "Show"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {validationErrors.confirmPassword && (
-              <Text className="text-error text-xs mt-1">{validationErrors.confirmPassword}</Text>
-            )}
-          </View>
-
-          {/* Signup Button */}
-          <TouchableOpacity
-            className="w-full bg-primary rounded-lg py-3 items-center mb-4"
-            onPress={handleSignup}
-            disabled={isLoading}
-            style={isLoading ? { opacity: 0.6 } : {}}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white font-semibold text-base">Create Account</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Login Link */}
-          <View className="flex-row items-center justify-center">
-            <Text className="text-muted text-sm">Already have an account? </Text>
-            <TouchableOpacity onPress={handleLoginPress} disabled={isLoading}>
-              <Text className="text-primary font-semibold text-sm">Sign in</Text>
+    <ScreenContainer className="p-0 bg-background">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-1 justify-center items-center px-4 py-8 sm:py-12">
+          {/* Constrained Desktop Card */}
+          <View className="max-w-md w-full">
+            {/* Back to Browsing */}
+            <TouchableOpacity
+              onPress={() => router.replace("/(tabs)" as any)}
+              className="flex-row items-center gap-1.5 mb-6 self-start py-1.5 px-2 rounded-lg hover:bg-muted/10"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={16} color="#0a7ea4" />
+              <Text className="text-primary text-sm font-semibold">
+                Back to Opportunities
+              </Text>
             </TouchableOpacity>
+
+            {/* Elevated Auth Card */}
+            <View
+              className="bg-surface rounded-3xl p-6 sm:p-8 border border-border"
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 10,
+                elevation: 3,
+              }}
+            >
+              {/* Header with App Logo */}
+              <View className="items-center mb-6">
+                <View
+                  style={{
+                    borderWidth: 2.5,
+                    borderColor: "#FBBF24",
+                    borderRadius: 14,
+                    padding: 4,
+                    backgroundColor: "#ffffff",
+                    marginBottom: 14,
+                  }}
+                >
+                  <Image
+                    source={require("@/assets/images/icon.png")}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
+                  />
+                </View>
+
+                <Text className="text-2xl sm:text-3xl font-extrabold text-foreground mb-1.5 text-center">
+                  Create Student Account
+                </Text>
+                <Text className="text-xs sm:text-sm text-muted text-center leading-relaxed">
+                  Save deadlines, sync bookmarks, and never miss an opportunity in Waterloo Region.
+                </Text>
+              </View>
+
+              {/* Error Message */}
+              {error && (
+                <View className="mb-5 bg-rose-50 border border-rose-200 rounded-xl p-3.5 flex-row items-center gap-2">
+                  <Ionicons name="alert-circle" size={18} color="#ef4444" />
+                  <Text className="text-rose-700 text-xs font-medium flex-1">
+                    {error}
+                  </Text>
+                </View>
+              )}
+
+              {/* Name Field */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-foreground mb-1.5 uppercase tracking-wider">
+                  Full Name
+                </Text>
+                <View className="flex-row items-center border border-border rounded-xl bg-background px-3 py-2.5">
+                  <Ionicons name="person-outline" size={18} color="#94a3b8" />
+                  <TextInput
+                    className="flex-1 ml-2.5 text-foreground text-sm"
+                    style={Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : undefined}
+                    placeholder="Jane Doe"
+                    placeholderTextColor="#94a3b8"
+                    value={name}
+                    onChangeText={(text) => {
+                      setName(text);
+                      if (validationErrors.name) {
+                        setValidationErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.name;
+                          return next;
+                        });
+                      }
+                    }}
+                    editable={!isLoading}
+                    autoCapitalize="words"
+                  />
+                </View>
+                {validationErrors.name && (
+                  <Text className="text-rose-500 text-xs mt-1 font-medium">
+                    {validationErrors.name}
+                  </Text>
+                )}
+              </View>
+
+              {/* Email Field */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-foreground mb-1.5 uppercase tracking-wider">
+                  Email Address
+                </Text>
+                <View className="flex-row items-center border border-border rounded-xl bg-background px-3 py-2.5">
+                  <Ionicons name="mail-outline" size={18} color="#94a3b8" />
+                  <TextInput
+                    className="flex-1 ml-2.5 text-foreground text-sm"
+                    style={Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : undefined}
+                    placeholder="student@wrdsb.ca"
+                    placeholderTextColor="#94a3b8"
+                    value={email}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      if (validationErrors.email) {
+                        setValidationErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.email;
+                          return next;
+                        });
+                      }
+                    }}
+                    editable={!isLoading}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                </View>
+                {validationErrors.email && (
+                  <Text className="text-rose-500 text-xs mt-1 font-medium">
+                    {validationErrors.email}
+                  </Text>
+                )}
+              </View>
+
+              {/* Password Field */}
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-foreground mb-1.5 uppercase tracking-wider">
+                  Password
+                </Text>
+                <View className="flex-row items-center border border-border rounded-xl bg-background px-3 py-2.5">
+                  <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" />
+                  <TextInput
+                    className="flex-1 ml-2.5 text-foreground text-sm"
+                    style={Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : undefined}
+                    placeholder="••••••••"
+                    placeholderTextColor="#94a3b8"
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      if (validationErrors.password) {
+                        setValidationErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.password;
+                          return next;
+                        });
+                      }
+                    }}
+                    editable={!isLoading}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={18}
+                      color="#94a3b8"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {validationErrors.password && (
+                  <Text className="text-rose-500 text-xs mt-1 font-medium">
+                    {validationErrors.password}
+                  </Text>
+                )}
+                <Text className="text-[11px] text-muted mt-1 leading-tight">
+                  At least 8 characters with uppercase, lowercase, and numbers
+                </Text>
+              </View>
+
+              {/* Confirm Password Field */}
+              <View className="mb-5">
+                <Text className="text-xs font-bold text-foreground mb-1.5 uppercase tracking-wider">
+                  Confirm Password
+                </Text>
+                <View className="flex-row items-center border border-border rounded-xl bg-background px-3 py-2.5">
+                  <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" />
+                  <TextInput
+                    className="flex-1 ml-2.5 text-foreground text-sm"
+                    style={Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : undefined}
+                    placeholder="••••••••"
+                    placeholderTextColor="#94a3b8"
+                    value={confirmPassword}
+                    onChangeText={(text) => {
+                      setConfirmPassword(text);
+                      if (validationErrors.confirmPassword) {
+                        setValidationErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.confirmPassword;
+                          return next;
+                        });
+                      }
+                    }}
+                    editable={!isLoading}
+                    secureTextEntry={!showConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={isLoading}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                      size={18}
+                      color="#94a3b8"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {validationErrors.confirmPassword && (
+                  <Text className="text-rose-500 text-xs mt-1 font-medium">
+                    {validationErrors.confirmPassword}
+                  </Text>
+                )}
+              </View>
+
+              {/* Signup Button */}
+              <TouchableOpacity
+                className="w-full bg-primary rounded-xl py-3.5 items-center mb-4 shadow-sm"
+                onPress={handleSignup}
+                disabled={isLoading}
+                activeOpacity={0.85}
+                style={isLoading ? { opacity: 0.7 } : {}}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white font-bold text-sm">
+                    Create Account
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Login Link */}
+              <View className="flex-row items-center justify-center pt-2 border-t border-border/60">
+                <Text className="text-muted text-xs">Already have an account? </Text>
+                <TouchableOpacity
+                  onPress={() => router.replace("/(auth)/login" as any)}
+                  disabled={isLoading}
+                >
+                  <Text className="text-primary font-bold text-xs">
+                    Sign in
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>

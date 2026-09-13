@@ -1,11 +1,22 @@
-import { ScrollView, Text, View, TouchableOpacity, ActivityIndicator, Linking, Share } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  ScrollView,
+  Text,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  Linking,
+  Share,
+  Platform,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useQuery } from "@tanstack/react-query";
 import { ScreenContainer } from "@/components/screen-container";
 import { useBookmarks } from "@/lib/bookmark-context";
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunity } from "@/lib/opportunities-api";
 import { PageViewBadge } from "@/components/page-view-counter";
+import { getCategoryMeta, getDeadlineInfo } from "@/lib/category-helpers";
 
 interface Opportunity {
   id: number;
@@ -17,7 +28,7 @@ interface Opportunity {
   type: string;
   duration: string;
   tags: string[] | null;
-  deadline: Date | null;
+  deadline: Date | string | null;
   submittedBy: string;
 }
 
@@ -54,10 +65,16 @@ export default function OpportunityDetailScreen() {
 
   const handleShare = async () => {
     if (!opportunity) return;
-
     try {
+      if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(
+          typeof window !== "undefined" ? window.location.href : (opportunity.externalLink || "")
+        );
+        alert("Link copied to clipboard!");
+        return;
+      }
       await Share.share({
-        message: `Check out this opportunity: ${opportunity.title}\n\n${opportunity.description}\n\nLearn more at: ${opportunity.externalLink || "LevelUp Waterloo"}`,
+        message: `Check out this student opportunity: ${opportunity.title}\n\n${opportunity.description}\n\n${opportunity.externalLink || ""}`,
         title: opportunity.title,
         url: opportunity.externalLink || undefined,
       });
@@ -66,155 +83,344 @@ export default function OpportunityDetailScreen() {
     }
   };
 
-  const formatDate = (date: Date | null | string) => {
-    if (!date) return "No deadline";
-    const d = new Date(date);
-    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const formatLevel = (level: string) => {
+    if (level === "high_school") return "High School";
+    if (level === "middle_school") return "Middle School";
+    return level.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
-  const getDaysUntilDeadline = (deadline: Date | null | string) => {
-    if (!deadline) return null;
-    const d = new Date(deadline);
-    const today = new Date();
-    const diff = d.getTime() - today.getTime();
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : null;
+  const formatType = (type: string) => {
+    if (type === "in_person") return "In-Person";
+    if (type === "online") return "Online";
+    if (type === "hybrid") return "Hybrid";
+    return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
-  const daysLeft = opportunity ? getDaysUntilDeadline(opportunity.deadline) : null;
-  const isBookmarkedState = opportunity ? isBookmarked(opportunity.id) : false;
+  const formatDuration = (dur: string) => {
+    if (dur === "short") return "Short term";
+    if (dur === "medium") return "Medium term";
+    if (dur === "long") return "Long term";
+    return dur.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
 
   if (isLoading) {
     return (
-      <ScreenContainer className="items-center justify-center">
+      <ScreenContainer className="items-center justify-center bg-background">
         <ActivityIndicator size="large" color="#0a7ea4" />
+        <Text className="text-muted text-sm mt-3">Loading opportunity details...</Text>
       </ScreenContainer>
     );
   }
 
   if (!opportunity) {
     return (
-      <ScreenContainer className="p-4 items-center justify-center">
-        <Text className="text-foreground text-lg">Opportunity not found</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4 bg-primary px-6 py-3 rounded-lg">
-          <Text className="text-white font-semibold">Go Back</Text>
+      <ScreenContainer className="p-6 items-center justify-center bg-background">
+        <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+        <Text className="text-foreground text-xl font-bold mt-3 mb-1">
+          Opportunity Not Found
+        </Text>
+        <Text className="text-muted text-sm text-center mb-6">
+          The opportunity you are looking for might have expired or been removed.
+        </Text>
+        <TouchableOpacity
+          onPress={() => router.push("/(tabs)")}
+          className="bg-primary px-6 py-3 rounded-xl shadow-xs"
+        >
+          <Text className="text-white font-bold">Back to Opportunities</Text>
         </TouchableOpacity>
       </ScreenContainer>
     );
   }
 
+  const categoryMeta = getCategoryMeta(opportunity.category);
+  const deadlineInfo = getDeadlineInfo(opportunity.deadline);
+  const isBookmarkedState = isBookmarked(opportunity.id);
+
   return (
-    <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-        <View className="gap-4">
-          {/* Header with back button */}
-          <View className="flex-row items-center justify-between">
-            <TouchableOpacity onPress={() => router.back()} className="flex-row items-center gap-2">
-              <Text className="text-primary text-lg">←</Text>
-              <Text className="text-primary font-semibold">Back</Text>
+    <ScreenContainer className="p-0 bg-background">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-8">
+          {/* Top Bar: Back Link + Actions */}
+          <View className="flex-row items-center justify-between mb-6 pb-4 border-b border-border/70">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="flex-row items-center gap-2 py-1.5 px-2.5 -ml-2.5 rounded-lg hover:bg-muted/10"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={18} color="#0a7ea4" />
+              <Text className="text-primary font-bold text-sm">
+                Opportunities
+              </Text>
             </TouchableOpacity>
-            <View className="flex-row gap-2">
+
+            <View className="flex-row items-center gap-2">
+              {/* Bookmark Toggle */}
               <TouchableOpacity
-                onPress={() => opportunity && toggleBookmark(opportunity.id)}
-                className="p-2"
+                onPress={() => toggleBookmark(opportunity.id)}
+                className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border ${
+                  isBookmarkedState
+                    ? "bg-rose-50 border-rose-200"
+                    : "bg-surface border-border"
+                }`}
+                activeOpacity={0.7}
               >
-                <Text className="text-2xl">{isBookmarkedState ? "❤️" : "🤍"}</Text>
+                <Ionicons
+                  name={isBookmarkedState ? "heart" : "heart-outline"}
+                  size={16}
+                  color={isBookmarkedState ? "#ef4444" : "#64748b"}
+                />
+                <Text
+                  className={`text-xs font-semibold ${
+                    isBookmarkedState ? "text-rose-600" : "text-foreground"
+                  }`}
+                >
+                  {isBookmarkedState ? "Saved" : "Save"}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleShare} className="p-2">
-                <Text className="text-2xl">📤</Text>
+
+              {/* Share */}
+              <TouchableOpacity
+                onPress={handleShare}
+                className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface border border-border"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="share-social-outline" size={15} color="#64748b" />
+                <Text className="text-xs font-semibold text-foreground">
+                  Share
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Title and Category */}
-            <View className="gap-2">
-            <View className="flex-row gap-2 flex-wrap items-center">
-              <View className="bg-primary/10 px-3 py-1 rounded-full">
-                <Text className="text-xs font-medium text-primary capitalize">
-                  {opportunity.category.replace("_", " ")}
+          {/* Editorial Hero Header Card */}
+          <View
+            className="bg-surface rounded-3xl p-6 sm:p-8 border border-border mb-6 overflow-hidden"
+            style={{
+              borderTopWidth: 5,
+              borderTopColor: categoryMeta.color,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.04,
+              shadowRadius: 8,
+              elevation: 2,
+            }}
+          >
+            {/* Badges Row */}
+            <View className="flex-row items-center gap-2 flex-wrap mb-4">
+              <View
+                className="flex-row items-center gap-1.5 px-3 py-1 rounded-full border"
+                style={{
+                  backgroundColor: categoryMeta.bgColor,
+                  borderColor: categoryMeta.borderColor,
+                }}
+              >
+                <Ionicons
+                  name={categoryMeta.icon}
+                  size={14}
+                  color={categoryMeta.textColor}
+                />
+                <Text
+                  className="text-xs font-bold"
+                  style={{ color: categoryMeta.textColor }}
+                >
+                  {categoryMeta.label}
                 </Text>
               </View>
-              {daysLeft && daysLeft <= 30 && (
-                <View className="bg-warning/10 px-3 py-1 rounded-full">
-                  <Text className="text-xs font-medium text-warning">
-                    {daysLeft} days left
-                  </Text>
-                </View>
-              )}
+
+              <View
+                className="flex-row items-center gap-1 px-3 py-1 rounded-full border"
+                style={{
+                  backgroundColor: deadlineInfo.bgColor,
+                  borderColor: deadlineInfo.borderColor,
+                }}
+              >
+                <Ionicons
+                  name={deadlineInfo.isUrgent ? "flame" : "time-outline"}
+                  size={13}
+                  color={deadlineInfo.color}
+                />
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: deadlineInfo.color }}
+                >
+                  {deadlineInfo.label}
+                </Text>
+              </View>
+
               <PageViewBadge page={`opp_${opportunity.id}`} label="views" />
             </View>
-            <Text className="text-3xl font-bold text-foreground">{opportunity.title}</Text>
-            <Text className="text-sm text-muted">Submitted by {opportunity.submittedBy}</Text>
-          </View>
 
-          {/* Metadata */}
-          <View className="bg-surface rounded-lg p-4 gap-3 border border-border">
-            <View className="flex-row justify-between">
-              <View>
-                <Text className="text-xs text-muted mb-1">Level</Text>
-                <Text className="text-sm font-semibold text-foreground capitalize">
-                  {opportunity.level.replace("_", " ")}
-                </Text>
-              </View>
-              <View>
-                <Text className="text-xs text-muted mb-1">Type</Text>
-                <Text className="text-sm font-semibold text-foreground capitalize">
-                  {opportunity.type.replace("_", " ")}
-                </Text>
-              </View>
-              <View>
-                <Text className="text-xs text-muted mb-1">Duration</Text>
-                <Text className="text-sm font-semibold text-foreground capitalize">
-                  {opportunity.duration}
-                </Text>
-              </View>
-            </View>
-            {(opportunity.tags ?? []).length > 0 && (
-              <View className="flex-row flex-wrap gap-2 pt-2 border-t border-border">
-                {(opportunity.tags ?? []).map((tag) => (
-                  <View key={tag} className="bg-primary/10 px-3 py-1 rounded-full">
-                    <Text className="text-xs font-medium text-primary">{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* Deadline */}
-          <View className="bg-surface rounded-lg p-4 border border-border">
-            <Text className="text-xs text-muted mb-1">Deadline</Text>
-            <Text className="text-lg font-semibold text-foreground">
-              {formatDate(opportunity.deadline)}
+            {/* Title */}
+            <Text className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-3 leading-tight">
+              {opportunity.title}
             </Text>
-            {daysLeft && (
-              <Text className="text-sm text-muted mt-1">
-                {daysLeft > 0 ? `${daysLeft} days remaining` : "Deadline passed"}
+
+            {/* Submitted By */}
+            <View className="flex-row items-center gap-2 mb-6">
+              <Ionicons name="business-outline" size={16} color="#64748b" />
+              <Text className="text-sm font-medium text-muted">
+                Presented by{" "}
+                <Text className="text-foreground font-semibold">
+                  {opportunity.submittedBy || "Waterloo Region Community"}
+                </Text>
               </Text>
-            )}
-          </View>
+            </View>
 
-          {/* Description */}
-          <View className="gap-2">
-            <Text className="text-lg font-semibold text-foreground">About This Opportunity</Text>
-            <Text className="text-base text-foreground leading-relaxed">{opportunity.description}</Text>
-          </View>
-
-          {/* Action Buttons */}
-          <View className="gap-3 mt-4">
+            {/* Primary Action Button directly in hero */}
             {opportunity.externalLink && (
               <TouchableOpacity
                 onPress={handleOpenLink}
-                className="bg-primary px-6 py-4 rounded-lg items-center"
+                className="bg-primary flex-row items-center justify-center gap-2 py-3.5 px-6 rounded-2xl shadow-sm hover:opacity-95"
+                activeOpacity={0.85}
               >
-                <Text className="text-white font-semibold text-lg">Learn More & Apply</Text>
+                <Text className="text-white text-base font-bold">
+                  Apply / Visit Official Website
+                </Text>
+                <Ionicons name="open-outline" size={18} color="#ffffff" />
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="bg-surface border border-border px-6 py-4 rounded-lg items-center"
-            >
-              <Text className="text-foreground font-semibold">Back to Opportunities</Text>
-            </TouchableOpacity>
+          </View>
+
+          {/* Quick Facts Grid (4 across on desktop, 2x2 on mobile) */}
+          <View className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <View className="bg-surface border border-border p-4 rounded-2xl">
+              <View className="flex-row items-center gap-1.5 mb-1 text-muted">
+                <Ionicons name="school-outline" size={15} color="#0a7ea4" />
+                <Text className="text-xs font-semibold text-muted uppercase">
+                  Level
+                </Text>
+              </View>
+              <Text className="text-sm font-bold text-foreground">
+                {formatLevel(opportunity.level)}
+              </Text>
+            </View>
+
+            <View className="bg-surface border border-border p-4 rounded-2xl">
+              <View className="flex-row items-center gap-1.5 mb-1 text-muted">
+                <Ionicons name="location-outline" size={15} color="#0a7ea4" />
+                <Text className="text-xs font-semibold text-muted uppercase">
+                  Format
+                </Text>
+              </View>
+              <Text className="text-sm font-bold text-foreground">
+                {formatType(opportunity.type)}
+              </Text>
+            </View>
+
+            <View className="bg-surface border border-border p-4 rounded-2xl">
+              <View className="flex-row items-center gap-1.5 mb-1 text-muted">
+                <Ionicons name="time-outline" size={15} color="#0a7ea4" />
+                <Text className="text-xs font-semibold text-muted uppercase">
+                  Duration
+                </Text>
+              </View>
+              <Text className="text-sm font-bold text-foreground">
+                {formatDuration(opportunity.duration)}
+              </Text>
+            </View>
+
+            <View className="bg-surface border border-border p-4 rounded-2xl">
+              <View className="flex-row items-center gap-1.5 mb-1 text-muted">
+                <Ionicons name="calendar-outline" size={15} color="#0a7ea4" />
+                <Text className="text-xs font-semibold text-muted uppercase">
+                  Deadline
+                </Text>
+              </View>
+              <Text
+                className="text-sm font-bold"
+                style={{ color: deadlineInfo.color }}
+              >
+                {deadlineInfo.label}
+              </Text>
+            </View>
+          </View>
+
+          {/* About This Opportunity */}
+          <View className="bg-surface rounded-3xl p-6 sm:p-8 border border-border mb-6">
+            <View className="flex-row items-center gap-2 mb-4 pb-3 border-b border-border/60">
+              <Ionicons name="document-text-outline" size={20} color="#0a7ea4" />
+              <Text className="text-lg font-bold text-foreground">
+                About this Opportunity
+              </Text>
+            </View>
+
+            <Text className="text-base sm:text-lg text-foreground leading-relaxed font-normal">
+              {opportunity.description}
+            </Text>
+
+            {/* Tags Cloud */}
+            {(opportunity.tags ?? []).length > 0 && (
+              <View className="pt-6 mt-6 border-t border-border/60">
+                <Text className="text-xs font-bold text-muted uppercase mb-3">
+                  Tagged Topics
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {(opportunity.tags ?? []).map((tag) => (
+                    <View
+                      key={tag}
+                      className="bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-xl"
+                    >
+                      <Text className="text-xs font-semibold text-primary">
+                        #{tag}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Bottom Action Footer */}
+          <View className="bg-surface rounded-2xl p-4 sm:p-6 border border-border flex-row items-center justify-between flex-wrap gap-4 mb-8">
+            <View>
+              <Text className="text-base font-bold text-foreground">
+                Interested in this opportunity?
+              </Text>
+              <Text className="text-xs text-muted">
+                Save it to your bookmarks or visit the external application page.
+              </Text>
+            </View>
+
+            <View className="flex-row items-center gap-3">
+              <TouchableOpacity
+                onPress={() => toggleBookmark(opportunity.id)}
+                className={`flex-row items-center gap-2 px-4 py-2.5 rounded-xl border ${
+                  isBookmarkedState
+                    ? "bg-rose-50 border-rose-200"
+                    : "bg-surface border-border"
+                }`}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={isBookmarkedState ? "heart" : "heart-outline"}
+                  size={18}
+                  color={isBookmarkedState ? "#ef4444" : "#64748b"}
+                />
+                <Text
+                  className={`text-xs font-bold ${
+                    isBookmarkedState ? "text-rose-600" : "text-foreground"
+                  }`}
+                >
+                  {isBookmarkedState ? "Saved" : "Save for Later"}
+                </Text>
+              </TouchableOpacity>
+
+              {opportunity.externalLink && (
+                <TouchableOpacity
+                  onPress={handleOpenLink}
+                  className="bg-primary flex-row items-center gap-2 px-5 py-2.5 rounded-xl shadow-xs"
+                  activeOpacity={0.85}
+                >
+                  <Text className="text-white text-xs font-bold">
+                    Apply Now
+                  </Text>
+                  <Ionicons name="open-outline" size={15} color="#ffffff" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </ScrollView>

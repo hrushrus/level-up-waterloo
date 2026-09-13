@@ -1,6 +1,7 @@
+import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/lib/auth-context";
 import { useColors } from "@/hooks/use-colors";
@@ -25,54 +26,70 @@ export default function ProfileScreen() {
 
   if (isLoading) {
     return (
-      <ScreenContainer className="flex-1 items-center justify-center">
+      <ScreenContainer className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color={colors.primary} />
       </ScreenContainer>
     );
   }
 
   return (
-    <ScreenContainer className="bg-background">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
-        <View className="flex-1 px-6 py-8">
+    <ScreenContainer className="p-0 bg-background">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
           {/* Header */}
-          <View className="mb-8">
-            <Text className="text-4xl font-bold text-foreground mb-2">
-              {user ? "Profile" : "Account"}
-            </Text>
-            <Text className="text-base text-muted">
-              {user ? "Manage your account settings" : "Sign up or sign in to your account"}
+          <View className="mb-6 pb-4 border-b border-border">
+            <View className="flex-row items-center gap-2.5 mb-1">
+              <View className="bg-primary/10 p-2 rounded-xl">
+                <Ionicons name="person" size={22} color="#0a7ea4" />
+              </View>
+              <Text className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+                {user ? "Student Profile" : "Account"}
+              </Text>
+            </View>
+            <Text className="text-sm text-muted">
+              {user
+                ? "Manage your account and saved opportunity preferences"
+                : "Sign in or create an account to sync your saved opportunities"}
             </Text>
           </View>
 
           {!user && (
-            <View className="bg-surface border border-border rounded-2xl p-6 mb-8">
-              <View className="mb-4">
-                <Text className="text-2xl font-bold text-foreground mb-2">
-                  Create an Account or Sign In
+            <View className="bg-surface border border-border rounded-3xl p-6 sm:p-8 mb-8 shadow-xs">
+              <View className="mb-5">
+                <Text className="text-xl font-bold text-foreground mb-2">
+                  Create Account or Sign In
                 </Text>
-                <Text className="text-base text-muted leading-relaxed">
-                  Join LevelUp Waterloo to save opportunities, track upcoming deadlines, sync bookmarks across devices, and get personalized recommendations.
+                <Text className="text-sm text-muted leading-relaxed">
+                  Join LevelUp Waterloo to save opportunities, track closing deadlines, sync bookmarks across your laptop and phone, and stay ahead.
                 </Text>
               </View>
 
               <TouchableOpacity
-                className="w-full bg-primary rounded-lg py-3.5 items-center mb-3"
+                className="w-full bg-primary rounded-xl py-3.5 items-center mb-3 shadow-sm"
                 onPress={() => router.push("/(auth)/signup" as any)}
+                activeOpacity={0.85}
               >
-                <Text className="text-white font-bold text-base">Sign Up (Create Account)</Text>
+                <Text className="text-white font-bold text-sm">
+                  Create Free Account
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="w-full bg-surface border border-border rounded-lg py-3.5 items-center mb-4"
+                className="w-full bg-background border border-border rounded-xl py-3.5 items-center mb-4"
                 onPress={() => router.push("/(auth)/login" as any)}
+                activeOpacity={0.8}
               >
-                <Text className="text-foreground font-semibold text-base">Sign In to Existing Account</Text>
+                <Text className="text-foreground font-semibold text-sm">
+                  Sign In to Existing Account
+                </Text>
               </TouchableOpacity>
 
-              <View className="border-t border-border pt-4">
+              <View className="border-t border-border/60 pt-4">
                 <Text className="text-xs text-muted text-center leading-relaxed">
-                  You can also continue browsing and exploring opportunities as a guest anytime.
+                  You can browse and explore all opportunities as a guest anytime.
                 </Text>
               </View>
             </View>
@@ -80,24 +97,34 @@ export default function ProfileScreen() {
 
           {/* User Info Card */}
           {user && (
-            <View className="bg-surface border border-border rounded-2xl p-6 mb-8">
+            <View className="bg-surface border border-border rounded-3xl p-6 sm:p-8 mb-6 shadow-xs">
               {/* Name */}
-              <View className="mb-6">
-                <Text className="text-sm font-semibold text-muted mb-1">Full Name</Text>
-                <Text className="text-lg font-semibold text-foreground">{user.name || "Not set"}</Text>
+              <View className="mb-5">
+                <Text className="text-xs font-bold text-muted uppercase tracking-wider mb-1">
+                  Full Name
+                </Text>
+                <Text className="text-lg font-bold text-foreground">
+                  {user.name || "Student"}
+                </Text>
               </View>
 
               {/* Email */}
-              <View className="mb-6">
-                <Text className="text-sm font-semibold text-muted mb-1">Email</Text>
-                <Text className="text-lg font-semibold text-foreground">{user.email || "Not set"}</Text>
+              <View className="mb-5">
+                <Text className="text-xs font-bold text-muted uppercase tracking-wider mb-1">
+                  Email
+                </Text>
+                <Text className="text-base font-medium text-foreground">
+                  {user.email || "Not set"}
+                </Text>
               </View>
 
               {/* Login Method */}
-              <View className="mb-6">
-                <Text className="text-sm font-semibold text-muted mb-1">Login Method</Text>
-                <View className="bg-background rounded-lg px-3 py-2 inline-flex">
-                  <Text className="text-sm font-semibold text-foreground capitalize">
+              <View className="mb-5">
+                <Text className="text-xs font-bold text-muted uppercase tracking-wider mb-1">
+                  Login Method
+                </Text>
+                <View className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-1.5 self-start">
+                  <Text className="text-xs font-semibold text-primary capitalize">
                     {user.loginMethod === "email" ? "Email & Password" : user.loginMethod}
                   </Text>
                 </View>
@@ -105,7 +132,9 @@ export default function ProfileScreen() {
 
               {/* Member Since */}
               <View>
-                <Text className="text-sm font-semibold text-muted mb-1">Member Since</Text>
+                <Text className="text-xs font-bold text-muted uppercase tracking-wider mb-1">
+                  Member Since
+                </Text>
                 <Text className="text-sm text-foreground">
                   {new Date(user.lastSignedIn).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -118,36 +147,27 @@ export default function ProfileScreen() {
           )}
 
           {user && (
-            <>
-              {/* Account Actions */}
-              <View className="mb-8">
-                <Text className="text-sm font-semibold text-muted mb-4">Account Settings</Text>
-
-                {/* Edit Profile Button */}
-                <TouchableOpacity className="bg-surface border border-border rounded-lg py-3 px-4 mb-3">
-                  <Text className="text-foreground font-semibold text-base">Edit Profile</Text>
-                </TouchableOpacity>
-
-                {/* Change Password Button */}
-                <TouchableOpacity className="bg-surface border border-border rounded-lg py-3 px-4 mb-3">
-                  <Text className="text-foreground font-semibold text-base">Change Password</Text>
-                </TouchableOpacity>
-              </View>
-
+            <View className="gap-3">
               {/* Logout Button */}
               <TouchableOpacity
-                className="w-full bg-error rounded-lg py-3 items-center"
+                className="w-full bg-rose-50 border border-rose-200 rounded-2xl py-3.5 items-center flex-row justify-center gap-2"
                 onPress={handleLogout}
                 disabled={isLoggingOut}
+                activeOpacity={0.8}
                 style={isLoggingOut ? { opacity: 0.6 } : {}}
               >
                 {isLoggingOut ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#ef4444" />
                 ) : (
-                  <Text className="text-white font-semibold text-base">Sign Out</Text>
+                  <>
+                    <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+                    <Text className="text-rose-600 font-bold text-sm">
+                      Sign Out
+                    </Text>
+                  </>
                 )}
               </TouchableOpacity>
-            </>
+            </View>
           )}
         </View>
       </ScrollView>

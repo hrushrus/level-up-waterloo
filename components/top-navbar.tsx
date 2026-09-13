@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image, Platform } from "react-native";
 import { useRouter, useSegments } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "@/lib/auth-context";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useColors } from "@/hooks/use-colors";
@@ -63,11 +64,16 @@ export function TopNavbar() {
         <View className="flex-row items-center gap-1 sm:gap-2">
           <TouchableOpacity
             onPress={() => router.push("/(tabs)" as any)}
-            className={`px-3 py-1.5 rounded-full ${
+            className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 ${
               isHome ? "bg-primary/10" : ""
             }`}
             activeOpacity={0.7}
           >
+            <Ionicons
+              name={isHome ? "compass" : "compass-outline"}
+              size={15}
+              color={isHome ? "#0a7ea4" : "#64748b"}
+            />
             <Text
               className={`text-sm font-semibold ${
                 isHome ? "text-primary font-bold" : "text-muted"
@@ -79,12 +85,16 @@ export function TopNavbar() {
 
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/bookmarks" as any)}
-            className={`px-3 py-1.5 rounded-full flex-row items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 ${
               isBookmarks ? "bg-primary/10" : ""
             }`}
             activeOpacity={0.7}
           >
-            <Text className="text-xs">❤️</Text>
+            <Ionicons
+              name={bookmarkedIds.size > 0 ? "heart" : "heart-outline"}
+              size={15}
+              color={bookmarkedIds.size > 0 ? "#ef4444" : isBookmarks ? "#0a7ea4" : "#64748b"}
+            />
             <Text
               className={`text-sm font-semibold ${
                 isBookmarks ? "text-primary font-bold" : "text-muted"
@@ -101,14 +111,14 @@ export function TopNavbar() {
             <View className="flex-row items-center gap-2">
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)/profile" as any)}
-                className={`flex-row items-center px-3 py-1.5 rounded-full border ${
+                className={`flex-row items-center px-3 py-1.5 rounded-full border gap-1.5 ${
                   isProfile
                     ? "bg-primary/10 border-primary"
                     : "bg-surface border-border"
                 }`}
                 activeOpacity={0.7}
               >
-                <Text className="text-xs mr-1">👤</Text>
+                <Ionicons name="person-circle-outline" size={17} color="#0a7ea4" />
                 <Text
                   className="text-xs font-semibold text-foreground"
                   numberOfLines={1}

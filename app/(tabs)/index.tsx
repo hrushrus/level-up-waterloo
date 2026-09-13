@@ -1,38 +1,33 @@
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ScrollView,
   Text,
   View,
   TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Image,
   TextInput,
+  Image,
   Linking,
+  useWindowDimensions,
+  Platform,
 } from "react-native";
-import { useState, useEffect, useMemo } from "react";
-import { ScreenContainer } from "@/components/screen-container";
 import { useRouter } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useQuery } from "@tanstack/react-query";
+import { ScreenContainer } from "@/components/screen-container";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { useAuth } from "@/lib/auth-context";
 import {
   OPPORTUNITY_TAGS,
   type OpportunityTag,
 } from "@/shared/opportunity-tags";
-import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunities } from "@/lib/opportunities-api";
 import { PageViewBadge } from "@/components/page-view-counter";
-
-const CATEGORIES = [
-  { id: "all", label: "All" },
-  { id: "closing_soon", label: "Closing Soon" },
-  { id: "extracurricular", label: "Extracurricular" },
-  { id: "experiential_learning", label: "Experiential Learning" },
-  { id: "sports", label: "Sports" },
-  { id: "volunteering", label: "Volunteering" },
-  { id: "grant", label: "Grants" },
-  { id: "stem_competition", label: "STEM" },
-  { id: "other", label: "Other" },
-];
+import { OpportunityCard, type OpportunityItem } from "@/components/opportunity-card";
+import { OpportunitySkeleton } from "@/components/opportunity-skeleton";
+import {
+  CATEGORIES_CONFIG,
+  getCategoryMeta,
+} from "@/lib/category-helpers";
 
 const LEVELS = [
   { id: "both", label: "All Levels" },
@@ -52,269 +47,303 @@ const DURATIONS = [
   { id: "long", label: "Long" },
 ];
 
-const SORT_OPTIONS = [
-  { id: "newest", label: "Newest" },
-  { id: "deadline", label: "Deadline" },
-  { id: "alphabetical", label: "A-Z" },
+const QUICK_SHORTCUTS = [
+  { id: "closing_soon", label: "Closing Soon", icon: "flame" as const, color: "#ef4444" },
+  { id: "volunteering", label: "Volunteering", icon: "people" as const, color: "#10b981" },
+  { id: "stem_competition", label: "STEM & Tech", icon: "code-slash" as const, color: "#6366f1" },
+  { id: "grant", label: "Grants & Awards", icon: "ribbon" as const, color: "#f59e0b" },
+  { id: "extracurricular", label: "Clubs", icon: "trophy" as const, color: "#8b5cf6" },
 ];
-
-interface Opportunity {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  externalLink: string | null;
-  level: string;
-  type: string;
-  duration: string;
-  tags: OpportunityTag[] | null;
-  deadline: Date | null;
-}
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 860;
+
   const [showSignupBanner, setShowSignupBanner] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLevel, setSelectedLevel] = useState("both");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<OpportunityTag[]>([]);
-  const [sortBy, setSortBy] = useState("newest");
-  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState<"newest" | "deadline" | "alphabetical">("newest");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [loading, setLoading] = useState(true);
-  // Fetch all opportunities
+
+  // Fetch opportunities query
   const {
     data: allOpps,
-    isLoading: allOppsLoading,
-    error: allOppsError,
+    isLoading,
+    error: queryError,
     refetch: refetchAllOpps,
-  } = useQuery<Opportunity[]>({
+  } = useQuery<OpportunityItem[]>({
     queryKey: ["opportunities"],
     queryFn: fetchOpportunities,
   });
-  const queryError = allOppsError;
 
-  useEffect(() => {
-    setLoading(allOppsLoading);
-  }, [allOppsLoading]);
+  // Category counts
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (!allOpps) return counts;
+    counts.all = allOpps.length;
+
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    counts.closing_soon = allOpps.filter((opp) => {
+      if (!opp.deadline) return false;
+      const d = new Date(opp.deadline);
+      return d <= thirtyDaysFromNow && d >= now;
+    }).length;
+
+    for (const opp of allOpps) {
+      counts[opp.category] = (counts[opp.category] || 0) + 1;
+    }
+    return counts;
+  }, [allOpps]);
 
   // Filter and sort opportunities
   const filteredAndSorted = useMemo(() => {
-    let filtered: Opportunity[] = [];
+    if (!allOpps) return [];
+    let filtered = [...allOpps];
 
-    if (selectedCategory === "all" && allOpps) {
-      filtered = allOpps;
-    } else if (selectedCategory === "closing_soon" && allOpps) {
-      const thirtyDaysFromNow = new Date();
-      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-      filtered = allOpps.filter((opp) => {
+    // Category filter
+    if (selectedCategory === "closing_soon") {
+      const now = new Date();
+      const thirtyDays = new Date();
+      thirtyDays.setDate(thirtyDays.getDate() + 30);
+      filtered = filtered.filter((opp) => {
         if (!opp.deadline) return false;
-        const deadline = new Date(opp.deadline);
-        return deadline <= thirtyDaysFromNow && deadline > new Date();
+        const d = new Date(opp.deadline);
+        return d <= thirtyDays && d >= now;
       });
-    } else if (allOpps) {
-      filtered = allOpps.filter((opp) => opp.category === selectedCategory);
+    } else if (selectedCategory !== "all") {
+      filtered = filtered.filter((opp) => opp.category === selectedCategory);
     }
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (opp) =>
-          opp.title.toLowerCase().includes(query) ||
-          opp.description.toLowerCase().includes(query) ||
-          (opp.tags ?? []).some((tag) => tag.includes(query)),
-      );
+    // Search query
+    if (searchQuery.trim().length > 0) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((opp) => {
+        const titleMatch = opp.title.toLowerCase().includes(q);
+        const descMatch = opp.description.toLowerCase().includes(q);
+        const tagMatch = (opp.tags ?? []).some((t) => t.toLowerCase().includes(q));
+        const catMatch = opp.category.toLowerCase().includes(q);
+        const submitterMatch = (opp.submittedBy ?? "").toLowerCase().includes(q);
+        return titleMatch || descMatch || tagMatch || catMatch || submitterMatch;
+      });
     }
 
-    // Apply level filter
+    // Level filter
     if (selectedLevel !== "both") {
       filtered = filtered.filter(
-        (opp) => opp.level === selectedLevel || opp.level === "both",
+        (opp) => opp.level === selectedLevel || opp.level === "both"
       );
     }
 
-    // Apply type filter
-    if (selectedType) {
+    // Type filter
+    if (selectedType !== null) {
       filtered = filtered.filter((opp) => opp.type === selectedType);
     }
 
-    // Apply duration filter
-    if (selectedDuration) {
+    // Duration filter
+    if (selectedDuration !== null) {
       filtered = filtered.filter((opp) => opp.duration === selectedDuration);
     }
 
+    // Tags filter
     if (selectedTags.length > 0) {
       filtered = filtered.filter((opp) =>
-        selectedTags.some((tag) => (opp.tags ?? []).includes(tag)),
+        selectedTags.some((tag) => (opp.tags ?? []).includes(tag))
       );
     }
 
-    // Apply sorting
-    const sorted = [...filtered];
+    // Sort
     if (sortBy === "deadline") {
-      sorted.sort((a, b) => {
-        const aDeadline = a.deadline
-          ? new Date(a.deadline).getTime()
-          : Infinity;
-        const bDeadline = b.deadline
-          ? new Date(b.deadline).getTime()
-          : Infinity;
-        return aDeadline - bDeadline;
+      filtered.sort((a, b) => {
+        const aTime = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        const bTime = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        return aTime - bTime;
       });
     } else if (sortBy === "alphabetical") {
-      sorted.sort((a, b) => a.title.localeCompare(b.title));
-    } else {
-      // newest (default, already in order)
+      filtered.sort((a, b) => a.title.localeCompare(b.title));
     }
 
-    return sorted;
+    return filtered;
   }, [
+    allOpps,
     selectedCategory,
+    searchQuery,
     selectedLevel,
     selectedType,
     selectedDuration,
     selectedTags,
     sortBy,
-    searchQuery,
-    allOpps,
   ]);
 
-  useEffect(() => {
-    setOpportunities(filteredAndSorted);
-  }, [filteredAndSorted]);
+  const hasActiveFilters =
+    selectedCategory !== "all" ||
+    selectedLevel !== "both" ||
+    selectedType !== null ||
+    selectedDuration !== null ||
+    selectedTags.length > 0 ||
+    searchQuery.trim().length > 0;
 
-  const renderOpportunityCard = ({ item }: { item: Opportunity }) => {
-    const isBookmarkedState = isBookmarked(item.id);
-    return (
-      <TouchableOpacity
-        onPress={() => router.push(`/opportunity/${item.id}`)}
-        activeOpacity={0.7}
-      >
-        <View className="bg-surface rounded-lg p-4 mb-3 border border-border">
-          <View className="flex-row justify-between items-start mb-2">
-            <Text className="text-lg font-semibold text-foreground flex-1">
-              {item.title}
-            </Text>
-            <TouchableOpacity
-              onPress={(event) => {
-                event.stopPropagation();
-                toggleBookmark(item.id);
-              }}
-              className="ml-2"
-            >
-              <Text className="text-xl">{isBookmarkedState ? "❤️" : "🤍"}</Text>
-            </TouchableOpacity>
-          </View>
-          <Text
-            className="text-sm text-muted mb-3 leading-relaxed"
-            numberOfLines={2}
-          >
-            {item.description}
-          </Text>
-          <View className="flex-row gap-2 mb-3 flex-wrap">
-            <View className="bg-primary/10 px-3 py-1 rounded-full">
-              <Text className="text-xs font-medium text-primary">
-                {item.level}
-              </Text>
-            </View>
-            <View className="bg-primary/10 px-3 py-1 rounded-full">
-              <Text className="text-xs font-medium text-primary">
-                {item.type}
-              </Text>
-            </View>
-            <View className="bg-primary/10 px-3 py-1 rounded-full">
-              <Text className="text-xs font-medium text-primary">
-                {item.duration}
-              </Text>
-            </View>
-            {(item.tags ?? []).slice(0, 4).map((tag) => (
-              <View key={tag} className="bg-primary/5 px-3 py-1 rounded-full">
-                <Text className="text-xs font-medium text-primary">{tag}</Text>
-              </View>
-            ))}
-          </View>
-          <TouchableOpacity
-            onPress={() => router.push(`/opportunity/${item.id}`)}
-            className="bg-primary px-4 py-2 rounded-lg"
-          >
-            <Text className="text-white font-semibold text-center">
-              View Details
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
+  const resetAllFilters = () => {
+    setSelectedCategory("all");
+    setSelectedLevel("both");
+    setSelectedType(null);
+    setSelectedDuration(null);
+    setSelectedTags([]);
+    setSearchQuery("");
   };
 
   return (
-    <ScreenContainer className="p-4">
+    <ScreenContainer className="p-0 bg-background">
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="gap-4">
+        {/* Main Constrained Layout */}
+        <View className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-6">
+          {/* Action-Oriented Hero & Search Area */}
+          <View
+            className="rounded-3xl p-6 sm:p-8 mb-6 border border-border overflow-hidden"
+            style={{
+              backgroundColor: "#f0f9ff",
+              shadowColor: "#0284c7",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 8,
+              elevation: 2,
+            }}
+          >
+            {/* Top Badge */}
+            <View className="flex-row items-center gap-2 mb-3">
+              <View className="bg-primary/15 px-3 py-1 rounded-full flex-row items-center gap-1.5">
+                <Ionicons name="sparkles" size={13} color="#0a7ea4" />
+                <Text className="text-xs font-bold text-primary tracking-wide">
+                  Waterloo Region Student Hub
+                </Text>
+              </View>
+            </View>
 
-          {/* Header with Logo */}
-          <View className="gap-3 items-center mb-2">
+            {/* Headline & Subtitle */}
+            <Text className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-2">
+              Level up your high school journey.
+            </Text>
+            <Text className="text-sm sm:text-base text-muted max-w-2xl mb-6 leading-relaxed">
+              Discover internships, volunteer hours, STEM competitions, scholarships,
+              and extracurricular programs designed for students in Waterloo Region.
+            </Text>
+
+            {/* Search Input Bar */}
             <View
+              className="bg-surface rounded-2xl border border-border p-2 sm:p-2.5 flex-row items-center mb-4"
               style={{
-                borderWidth: 4,
-                borderColor: "#FBBF24",
-                borderRadius: 16,
-                padding: 4,
-                backgroundColor: "#ffffff",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 5,
+                elevation: 2,
               }}
             >
-              <Image
-                source={require("@/assets/images/icon.png")}
-                style={{ width: 120, height: 120 }}
-                resizeMode="contain"
+              <View className="pl-3 pr-2">
+                <Ionicons name="search-outline" size={20} color="#0a7ea4" />
+              </View>
+              <TextInput
+                placeholder="Search opportunities by title, topic, or tags..."
+                placeholderTextColor="#94a3b8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                className="flex-1 text-base text-foreground py-2 outline-none"
+                style={Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : undefined}
+                returnKeyType="search"
               />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearchQuery("")}
+                  className="p-2"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={20} color="#94a3b8" />
+                </TouchableOpacity>
+              )}
             </View>
-            <View className="gap-2 items-center w-full">
-              <Text className="text-3xl font-bold text-foreground">
-                LevelUp Waterloo
+
+            {/* Quick Filter Shortcuts */}
+            <View className="flex-row items-center gap-2 flex-wrap">
+              <Text className="text-xs font-semibold text-muted mr-1">
+                Quick search:
               </Text>
-              <Text className="text-base text-muted text-center">
-                Discover <Text className="italic" style={{ fontStyle: "italic" }}>opportunities</Text> for students in the Waterloo region
-              </Text>
-              <View
-                className="h-[1px] bg-border mt-2"
-                style={{ width: "100%" }}
-              />
+              {QUICK_SHORTCUTS.map((shortcut) => {
+                const isActive = selectedCategory === shortcut.id;
+                return (
+                  <TouchableOpacity
+                    key={shortcut.id}
+                    onPress={() =>
+                      setSelectedCategory(isActive ? "all" : shortcut.id)
+                    }
+                    className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border ${
+                      isActive
+                        ? "bg-primary border-primary"
+                        : "bg-surface border-border/80"
+                    }`}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={shortcut.icon}
+                      size={13}
+                      color={isActive ? "#ffffff" : shortcut.color}
+                    />
+                    <Text
+                      className={`text-xs font-semibold ${
+                        isActive ? "text-white" : "text-foreground"
+                      }`}
+                    >
+                      {shortcut.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
           {/* Guest Sign Up Callout Banner */}
           {!user && showSignupBanner && (
-            <View className="bg-primary/10 border border-primary/25 rounded-2xl p-4">
+            <View className="bg-primary/10 border border-primary/25 rounded-2xl p-4 sm:p-5 mb-6">
               <View className="flex-row items-start justify-between">
                 <View className="flex-1 pr-3">
-                  <Text className="text-base font-bold text-foreground mb-1">
-                    Join LevelUp Waterloo
-                  </Text>
+                  <View className="flex-row items-center gap-2 mb-1">
+                    <Ionicons name="bookmark" size={16} color="#0a7ea4" />
+                    <Text className="text-base font-bold text-foreground">
+                      Never lose an application deadline
+                    </Text>
+                  </View>
                   <Text className="text-sm text-muted mb-3 leading-snug">
-                    Create a free student account to save opportunities, track deadlines, and sync your bookmarks.
+                    Create a free student account to save your favorite opportunities, sync bookmarks, and keep track of closing dates across devices.
                   </Text>
                   <View className="flex-row items-center gap-2.5">
                     <TouchableOpacity
                       onPress={() => router.push("/(auth)/signup" as any)}
-                      className="bg-primary px-4 py-2 rounded-lg"
+                      className="bg-primary px-4 py-2 rounded-xl shadow-xs"
                       activeOpacity={0.8}
                     >
-                      <Text className="text-white text-xs font-bold">Sign Up Free</Text>
+                      <Text className="text-white text-xs font-bold">
+                        Create Free Account
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => router.push("/(auth)/login" as any)}
-                      className="bg-surface border border-border px-3.5 py-2 rounded-lg"
+                      className="bg-surface border border-border px-3.5 py-2 rounded-xl"
                       activeOpacity={0.8}
                     >
-                      <Text className="text-foreground text-xs font-semibold">Sign In</Text>
+                      <Text className="text-foreground text-xs font-semibold">
+                        Sign In
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -323,386 +352,721 @@ export default function HomeScreen() {
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   className="p-1"
                 >
-                  <Text className="text-muted text-sm font-semibold">✕</Text>
+                  <Ionicons name="close" size={18} color="#94a3b8" />
                 </TouchableOpacity>
               </View>
             </View>
           )}
 
-          {/* Search Bar */}
-          <View className="bg-surface rounded-lg border border-border px-4 py-3 flex-row items-center">
-            <Text className="text-muted mr-2">🔍</Text>
-            <TextInput
-              placeholder="Search opportunities..."
-              placeholderTextColor="#687076"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="text-foreground flex-1"
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery("")}
-                className="ml-2"
-              >
-                <Text className="text-muted text-lg">✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Category Filter */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">
-              Categories
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="gap-2"
-            >
-              <View className="flex-row gap-2">
-                {CATEGORIES.map((category) => (
-                  <TouchableOpacity
-                    key={category.id}
-                    onPress={() => setSelectedCategory(category.id)}
-                    className={`px-4 py-2 rounded-full ${
-                      selectedCategory === category.id
-                        ? "bg-primary"
-                        : "bg-surface border border-border"
-                    }`}
-                  >
-                    <Text
-                      className={`font-medium ${
-                        selectedCategory === category.id
-                          ? "text-white"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {category.label}
+          {/* Main Two-Column or Stacked Responsive Layout */}
+          <View className={isDesktop ? "flex-row gap-8 items-start" : "flex-col gap-4"}>
+            {/* LEFT COLUMN: Sidebar Filters on Desktop */}
+            {isDesktop ? (
+              <View className="w-72 shrink-0 gap-6 sticky top-4">
+                {/* Categories Card */}
+                <View className="bg-surface border border-border rounded-2xl p-4">
+                  <View className="flex-row items-center justify-between mb-3 pb-2 border-b border-border/60">
+                    <Text className="text-sm font-bold text-foreground uppercase tracking-wider">
+                      Categories
                     </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-
-          {/* Active Filters Display */}
-          {(selectedLevel !== "both" ||
-            selectedType !== null ||
-            selectedDuration !== null ||
-            selectedTags.length > 0) && (
-            <View className="gap-2">
-              <View className="flex-row flex-wrap gap-2 items-center">
-                {selectedLevel !== "both" && (
-                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
-                    <Text className="text-xs font-medium text-primary">
-                      {LEVELS.find((l) => l.id === selectedLevel)?.label}
-                    </Text>
+                    {selectedCategory !== "all" && (
+                      <TouchableOpacity onPress={() => setSelectedCategory("all")}>
+                        <Text className="text-xs text-primary font-semibold">
+                          View All
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
-                )}
-                {selectedType !== null && (
-                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
-                    <Text className="text-xs font-medium text-primary">
-                      {TYPES.find((t) => t.id === selectedType)?.label}
-                    </Text>
-                  </View>
-                )}
-                {selectedDuration !== null && (
-                  <View className="bg-primary/20 px-3 py-1 rounded-full flex-row items-center gap-1">
-                    <Text className="text-xs font-medium text-primary">
-                      {DURATIONS.find((d) => d.id === selectedDuration)?.label}
-                    </Text>
-                  </View>
-                )}
-                {selectedTags.map((tag) => (
-                  <View
-                    key={tag}
-                    className="bg-primary/20 px-3 py-1 rounded-full"
-                  >
-                    <Text className="text-xs font-medium text-primary">
-                      {tag}
-                    </Text>
-                  </View>
-                ))}
-                <TouchableOpacity
-                  onPress={() => {
-                    setSelectedLevel("both");
-                    setSelectedType(null);
-                    setSelectedDuration(null);
-                    setSelectedTags([]);
-                  }}
-                  className="ml-auto"
-                >
-                  <Text className="text-xs font-semibold text-primary underline">
-                    Clear All
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
 
-          {/* Filter and Sort Controls */}
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              onPress={() => setShowFilters(!showFilters)}
-              className="flex-1 bg-surface border border-border px-4 py-2 rounded-lg items-center"
-            >
-              <Text className="text-foreground font-semibold">
-                {showFilters ? "Hide Filters" : "Show Filters"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() =>
-                setSortBy(
-                  sortBy === "newest"
-                    ? "deadline"
-                    : sortBy === "deadline"
-                      ? "alphabetical"
-                      : "newest",
-                )
-              }
-              className="flex-1 bg-surface border border-border px-4 py-2 rounded-lg items-center"
-            >
-              <Text className="text-foreground font-semibold text-xs text-center">
-                Sort:{" "}
-                {sortBy === "newest"
-                  ? "Newest"
-                  : sortBy === "deadline"
-                    ? "Deadline"
-                    : "A-Z"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Advanced Filters */}
-          {showFilters && (
-            <View className="bg-surface rounded-lg p-4 border border-border gap-3">
-              {/* Level Filter */}
-              <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">
-                  Level
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {LEVELS.map((level) => (
-                    <TouchableOpacity
-                      key={level.id}
-                      onPress={() => setSelectedLevel(level.id)}
-                      className={`px-3 py-1 rounded-full ${
-                        selectedLevel === level.id
-                          ? "bg-primary"
-                          : "bg-background border border-border"
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs font-medium ${
-                          selectedLevel === level.id
-                            ? "text-white"
-                            : "text-foreground"
-                        }`}
-                      >
-                        {level.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  <View className="gap-1">
+                    {CATEGORIES_CONFIG.map((cat) => {
+                      const isActive = selectedCategory === cat.id;
+                      const count = categoryCounts[cat.id] ?? 0;
+                      return (
+                        <TouchableOpacity
+                          key={cat.id}
+                          onPress={() => setSelectedCategory(cat.id)}
+                          className={`flex-row items-center justify-between px-3 py-2 rounded-xl ${
+                            isActive
+                              ? "bg-primary text-white"
+                              : "hover:bg-muted/10"
+                          }`}
+                          activeOpacity={0.7}
+                        >
+                          <View className="flex-row items-center gap-2.5 flex-1 pr-2">
+                            <Ionicons
+                              name={cat.icon}
+                              size={16}
+                              color={isActive ? "#ffffff" : cat.color}
+                            />
+                            <Text
+                              className={`text-sm font-medium ${
+                                isActive ? "text-white font-semibold" : "text-foreground"
+                              }`}
+                              numberOfLines={1}
+                            >
+                              {cat.shortLabel}
+                            </Text>
+                          </View>
+                          <View
+                            className={`px-2 py-0.5 rounded-full ${
+                              isActive ? "bg-white/20" : "bg-muted/15"
+                            }`}
+                          >
+                            <Text
+                              className={`text-xs font-semibold ${
+                                isActive ? "text-white" : "text-muted"
+                              }`}
+                            >
+                              {count}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
 
-              {/* Type Filter */}
-              <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">
-                  Type
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  <TouchableOpacity
-                    onPress={() => setSelectedType(null)}
-                    className={`px-3 py-1 rounded-full ${
-                      selectedType === null
-                        ? "bg-primary"
-                        : "bg-background border border-border"
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-medium ${
-                        selectedType === null ? "text-white" : "text-foreground"
-                      }`}
-                    >
-                      All Types
+                {/* Filter Options Card (Level, Format, Duration, Tags) */}
+                <View className="bg-surface border border-border rounded-2xl p-4 gap-4">
+                  <View className="flex-row items-center justify-between pb-2 border-b border-border/60">
+                    <Text className="text-sm font-bold text-foreground uppercase tracking-wider">
+                      Filters
                     </Text>
-                  </TouchableOpacity>
-                  {TYPES.map((type) => (
-                    <TouchableOpacity
-                      key={type.id}
-                      onPress={() => setSelectedType(type.id)}
-                      className={`px-3 py-1 rounded-full ${
-                        selectedType === type.id
-                          ? "bg-primary"
-                          : "bg-background border border-border"
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs font-medium ${
-                          selectedType === type.id
-                            ? "text-white"
-                            : "text-foreground"
-                        }`}
-                      >
-                        {type.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
+                    {hasActiveFilters && (
+                      <TouchableOpacity onPress={resetAllFilters}>
+                        <Text className="text-xs text-primary font-semibold">
+                          Reset
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
 
-              {/* Duration Filter */}
-              <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">
-                  Duration
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  <TouchableOpacity
-                    onPress={() => setSelectedDuration(null)}
-                    className={`px-3 py-1 rounded-full ${
-                      selectedDuration === null
-                        ? "bg-primary"
-                        : "bg-background border border-border"
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-medium ${
-                        selectedDuration === null
-                          ? "text-white"
-                          : "text-foreground"
-                      }`}
-                    >
-                      All Durations
+                  {/* Level */}
+                  <View className="gap-2">
+                    <Text className="text-xs font-semibold text-muted uppercase">
+                      Student Level
                     </Text>
-                  </TouchableOpacity>
-                  {DURATIONS.map((duration) => (
-                    <TouchableOpacity
-                      key={duration.id}
-                      onPress={() => setSelectedDuration(duration.id)}
-                      className={`px-3 py-1 rounded-full ${
-                        selectedDuration === duration.id
-                          ? "bg-primary"
-                          : "bg-background border border-border"
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs font-medium ${
-                          selectedDuration === duration.id
-                            ? "text-white"
-                            : "text-foreground"
-                        }`}
-                      >
-                        {duration.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
+                    <View className="gap-1">
+                      {LEVELS.map((lvl) => (
+                        <TouchableOpacity
+                          key={lvl.id}
+                          onPress={() => setSelectedLevel(lvl.id)}
+                          className={`px-3 py-1.5 rounded-lg flex-row items-center justify-between ${
+                            selectedLevel === lvl.id
+                              ? "bg-primary/10 border border-primary/30"
+                              : "bg-surface border border-transparent"
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs ${
+                              selectedLevel === lvl.id
+                                ? "text-primary font-bold"
+                                : "text-foreground font-medium"
+                            }`}
+                          >
+                            {lvl.label}
+                          </Text>
+                          {selectedLevel === lvl.id && (
+                            <Ionicons
+                              name="checkmark"
+                              size={14}
+                              color="#0a7ea4"
+                            />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
 
-              {/* Tag Filter */}
-              <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">
-                  Tags
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {OPPORTUNITY_TAGS.map((tag) => {
-                    const selected = selectedTags.includes(tag);
-                    return (
+                  {/* Type / Format */}
+                  <View className="gap-2 pt-2 border-t border-border/60">
+                    <Text className="text-xs font-semibold text-muted uppercase">
+                      Format
+                    </Text>
+                    <View className="flex-row flex-wrap gap-1.5">
                       <TouchableOpacity
-                        key={tag}
-                        onPress={() =>
-                          setSelectedTags(
-                            selected
-                              ? selectedTags.filter((item) => item !== tag)
-                              : [...selectedTags, tag],
-                          )
-                        }
-                        className={`px-3 py-1 rounded-full ${
-                          selected
-                            ? "bg-primary"
-                            : "bg-background border border-border"
+                        onPress={() => setSelectedType(null)}
+                        className={`px-2.5 py-1 rounded-full border ${
+                          selectedType === null
+                            ? "bg-primary border-primary"
+                            : "bg-surface border-border"
                         }`}
                       >
                         <Text
                           className={`text-xs font-medium ${
-                            selected ? "text-white" : "text-foreground"
+                            selectedType === null ? "text-white" : "text-foreground"
                           }`}
                         >
-                          {tag}
+                          All
                         </Text>
                       </TouchableOpacity>
-                    );
-                  })}
+                      {TYPES.map((t) => (
+                        <TouchableOpacity
+                          key={t.id}
+                          onPress={() =>
+                            setSelectedType(selectedType === t.id ? null : t.id)
+                          }
+                          className={`px-2.5 py-1 rounded-full border ${
+                            selectedType === t.id
+                              ? "bg-primary border-primary"
+                              : "bg-surface border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs font-medium ${
+                              selectedType === t.id
+                                ? "text-white"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {t.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Duration */}
+                  <View className="gap-2 pt-2 border-t border-border/60">
+                    <Text className="text-xs font-semibold text-muted uppercase">
+                      Commitment
+                    </Text>
+                    <View className="flex-row flex-wrap gap-1.5">
+                      <TouchableOpacity
+                        onPress={() => setSelectedDuration(null)}
+                        className={`px-2.5 py-1 rounded-full border ${
+                          selectedDuration === null
+                            ? "bg-primary border-primary"
+                            : "bg-surface border-border"
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-medium ${
+                            selectedDuration === null
+                              ? "text-white"
+                              : "text-foreground"
+                          }`}
+                        >
+                          All
+                        </Text>
+                      </TouchableOpacity>
+                      {DURATIONS.map((dur) => (
+                        <TouchableOpacity
+                          key={dur.id}
+                          onPress={() =>
+                            setSelectedDuration(
+                              selectedDuration === dur.id ? null : dur.id
+                            )
+                          }
+                          className={`px-2.5 py-1 rounded-full border ${
+                            selectedDuration === dur.id
+                              ? "bg-primary border-primary"
+                              : "bg-surface border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs font-medium ${
+                              selectedDuration === dur.id
+                                ? "text-white"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {dur.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Tags */}
+                  <View className="gap-2 pt-2 border-t border-border/60">
+                    <Text className="text-xs font-semibold text-muted uppercase">
+                      Popular Tags
+                    </Text>
+                    <View className="flex-row flex-wrap gap-1.5">
+                      {OPPORTUNITY_TAGS.map((tag) => {
+                        const selected = selectedTags.includes(tag);
+                        return (
+                          <TouchableOpacity
+                            key={tag}
+                            onPress={() =>
+                              setSelectedTags(
+                                selected
+                                  ? selectedTags.filter((t) => t !== tag)
+                                  : [...selectedTags, tag]
+                              )
+                            }
+                            className={`px-2 py-0.5 rounded-md border ${
+                              selected
+                                ? "bg-primary border-primary"
+                                : "bg-surface border-border"
+                            }`}
+                          >
+                            <Text
+                              className={`text-xs ${
+                                selected
+                                  ? "text-white font-semibold"
+                                  : "text-muted"
+                              }`}
+                            >
+                              #{tag}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
                 </View>
               </View>
-            </View>
-          )}
+            ) : null}
 
-          {/* Opportunities List */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">
-              {selectedCategory === "all"
-                ? "All Opportunities"
-                : selectedCategory === "closing_soon"
-                  ? "Closing Soon"
-                  : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Opportunities`}
-              {opportunities.length > 0 && ` (${opportunities.length})`}
-            </Text>
-            {loading ? (
-              <View className="items-center justify-center py-8">
-                <ActivityIndicator size="large" color="#0a7ea4" />
+            {/* RIGHT COLUMN: Opportunity Feed */}
+            <View className="flex-1 min-w-0">
+              {/* Mobile Horizontal Category Scroller */}
+              {!isDesktop && (
+                <View className="mb-4">
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    className="gap-2"
+                  >
+                    <View className="flex-row gap-2">
+                      {CATEGORIES_CONFIG.map((cat) => {
+                        const isActive = selectedCategory === cat.id;
+                        const count = categoryCounts[cat.id] ?? 0;
+                        return (
+                          <TouchableOpacity
+                            key={cat.id}
+                            onPress={() => setSelectedCategory(cat.id)}
+                            className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border ${
+                              isActive
+                                ? "bg-primary border-primary"
+                                : "bg-surface border-border"
+                            }`}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons
+                              name={cat.icon}
+                              size={14}
+                              color={isActive ? "#ffffff" : cat.color}
+                            />
+                            <Text
+                              className={`text-xs font-semibold ${
+                                isActive ? "text-white" : "text-foreground"
+                              }`}
+                            >
+                              {cat.shortLabel}
+                            </Text>
+                            <View
+                              className={`px-1.5 py-0.2 rounded-full ${
+                                isActive ? "bg-white/25" : "bg-muted/15"
+                              }`}
+                            >
+                              <Text
+                                className={`text-[10px] font-bold ${
+                                  isActive ? "text-white" : "text-muted"
+                                }`}
+                              >
+                                {count}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Mobile Filter Toggle & Sort Bar */}
+              {!isDesktop && (
+                <View className="flex-row gap-2 mb-4">
+                  <TouchableOpacity
+                    onPress={() => setShowMobileFilters(!showMobileFilters)}
+                    className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl border ${
+                      hasActiveFilters
+                        ? "bg-primary/10 border-primary"
+                        : "bg-surface border-border"
+                    }`}
+                  >
+                    <Ionicons
+                      name="options-outline"
+                      size={16}
+                      color={hasActiveFilters ? "#0a7ea4" : "#64748b"}
+                    />
+                    <Text
+                      className={`text-xs font-semibold ${
+                        hasActiveFilters ? "text-primary" : "text-foreground"
+                      }`}
+                    >
+                      {showMobileFilters ? "Hide Filters" : "Filters"}
+                      {hasActiveFilters ? " (active)" : ""}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() =>
+                      setSortBy(
+                        sortBy === "newest"
+                          ? "deadline"
+                          : sortBy === "deadline"
+                          ? "alphabetical"
+                          : "newest"
+                      )
+                    }
+                    className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-surface border border-border"
+                  >
+                    <Ionicons
+                      name="swap-vertical-outline"
+                      size={16}
+                      color="#64748b"
+                    />
+                    <Text className="text-xs font-semibold text-foreground">
+                      Sort:{" "}
+                      {sortBy === "newest"
+                        ? "Newest"
+                        : sortBy === "deadline"
+                        ? "Deadline"
+                        : "A-Z"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Mobile Expanded Filters Panel */}
+              {!isDesktop && showMobileFilters && (
+                <View className="bg-surface rounded-2xl p-4 border border-border gap-3.5 mb-4">
+                  <View className="flex-row items-center justify-between pb-2 border-b border-border/60">
+                    <Text className="text-xs font-bold text-foreground uppercase">
+                      Filter Options
+                    </Text>
+                    {hasActiveFilters && (
+                      <TouchableOpacity onPress={resetAllFilters}>
+                        <Text className="text-xs text-primary font-semibold">
+                          Reset All
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Level */}
+                  <View className="gap-1.5">
+                    <Text className="text-xs font-semibold text-muted">Level</Text>
+                    <View className="flex-row flex-wrap gap-1.5">
+                      {LEVELS.map((lvl) => (
+                        <TouchableOpacity
+                          key={lvl.id}
+                          onPress={() => setSelectedLevel(lvl.id)}
+                          className={`px-3 py-1 rounded-full border ${
+                            selectedLevel === lvl.id
+                              ? "bg-primary border-primary"
+                              : "bg-surface border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs font-medium ${
+                              selectedLevel === lvl.id
+                                ? "text-white"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {lvl.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Type */}
+                  <View className="gap-1.5">
+                    <Text className="text-xs font-semibold text-muted">Format</Text>
+                    <View className="flex-row flex-wrap gap-1.5">
+                      <TouchableOpacity
+                        onPress={() => setSelectedType(null)}
+                        className={`px-3 py-1 rounded-full border ${
+                          selectedType === null
+                            ? "bg-primary border-primary"
+                            : "bg-surface border-border"
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-medium ${
+                            selectedType === null ? "text-white" : "text-foreground"
+                          }`}
+                        >
+                          All
+                        </Text>
+                      </TouchableOpacity>
+                      {TYPES.map((t) => (
+                        <TouchableOpacity
+                          key={t.id}
+                          onPress={() =>
+                            setSelectedType(selectedType === t.id ? null : t.id)
+                          }
+                          className={`px-3 py-1 rounded-full border ${
+                            selectedType === t.id
+                              ? "bg-primary border-primary"
+                              : "bg-surface border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs font-medium ${
+                              selectedType === t.id
+                                ? "text-white"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {t.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Duration */}
+                  <View className="gap-1.5">
+                    <Text className="text-xs font-semibold text-muted">Duration</Text>
+                    <View className="flex-row flex-wrap gap-1.5">
+                      <TouchableOpacity
+                        onPress={() => setSelectedDuration(null)}
+                        className={`px-3 py-1 rounded-full border ${
+                          selectedDuration === null
+                            ? "bg-primary border-primary"
+                            : "bg-surface border-border"
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-medium ${
+                            selectedDuration === null
+                              ? "text-white"
+                              : "text-foreground"
+                          }`}
+                        >
+                          All
+                        </Text>
+                      </TouchableOpacity>
+                      {DURATIONS.map((dur) => (
+                        <TouchableOpacity
+                          key={dur.id}
+                          onPress={() =>
+                            setSelectedDuration(
+                              selectedDuration === dur.id ? null : dur.id
+                            )
+                          }
+                          className={`px-3 py-1 rounded-full border ${
+                            selectedDuration === dur.id
+                              ? "bg-primary border-primary"
+                              : "bg-surface border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs font-medium ${
+                              selectedDuration === dur.id
+                                ? "text-white"
+                                : "text-foreground"
+                            }`}
+                          >
+                            {dur.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Feed Header (Title + Count + Sort on Desktop) */}
+              <View className="flex-row items-center justify-between mb-4 flex-wrap gap-2">
+                <View>
+                  <Text className="text-xl font-bold text-foreground">
+                    {getCategoryMeta(selectedCategory).label}
+                  </Text>
+                  <Text className="text-xs text-muted">
+                    Showing {filteredAndSorted.length}{" "}
+                    {filteredAndSorted.length === 1
+                      ? "opportunity"
+                      : "opportunities"}
+                    {searchQuery ? ` matching "${searchQuery}"` : ""}
+                  </Text>
+                </View>
+
+                {isDesktop && (
+                  <View className="flex-row items-center gap-1.5 bg-surface border border-border p-1 rounded-xl">
+                    <Text className="text-xs text-muted px-2 font-medium">
+                      Sort by:
+                    </Text>
+                    {(
+                      [
+                        { id: "newest", label: "Newest" },
+                        { id: "deadline", label: "Deadline" },
+                        { id: "alphabetical", label: "A-Z" },
+                      ] as const
+                    ).map((opt) => (
+                      <TouchableOpacity
+                        key={opt.id}
+                        onPress={() => setSortBy(opt.id)}
+                        className={`px-3 py-1 rounded-lg ${
+                          sortBy === opt.id
+                            ? "bg-primary"
+                            : "hover:bg-muted/10"
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-semibold ${
+                            sortBy === opt.id ? "text-white" : "text-foreground"
+                          }`}
+                        >
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
-            ) : queryError ? (
-              <View className="items-center justify-center py-8">
-                <Text className="text-error text-center mb-3">
-                  Unable to load opportunities. Please try again.
+
+              {/* Active Filter Pills Bar */}
+              {(selectedLevel !== "both" ||
+                selectedType !== null ||
+                selectedDuration !== null ||
+                selectedTags.length > 0) && (
+                <View className="flex-row flex-wrap items-center gap-1.5 mb-4">
+                  {selectedLevel !== "both" && (
+                    <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1">
+                      <Text className="text-xs text-primary font-medium">
+                        Level: {LEVELS.find((l) => l.id === selectedLevel)?.label}
+                      </Text>
+                      <TouchableOpacity onPress={() => setSelectedLevel("both")}>
+                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {selectedType !== null && (
+                    <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1">
+                      <Text className="text-xs text-primary font-medium">
+                        Format: {TYPES.find((t) => t.id === selectedType)?.label}
+                      </Text>
+                      <TouchableOpacity onPress={() => setSelectedType(null)}>
+                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {selectedDuration !== null && (
+                    <View className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1">
+                      <Text className="text-xs text-primary font-medium">
+                        Duration: {DURATIONS.find((d) => d.id === selectedDuration)?.label}
+                      </Text>
+                      <TouchableOpacity onPress={() => setSelectedDuration(null)}>
+                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {selectedTags.map((tag) => (
+                    <View
+                      key={tag}
+                      className="bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full flex-row items-center gap-1"
+                    >
+                      <Text className="text-xs text-primary font-medium">
+                        #{tag}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setSelectedTags(selectedTags.filter((t) => t !== tag))
+                        }
+                      >
+                        <Ionicons name="close" size={13} color="#0a7ea4" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  <TouchableOpacity onPress={resetAllFilters} className="ml-1">
+                    <Text className="text-xs text-muted underline">
+                      Clear filters
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Feed Content: Loading Skeletons, Error, Empty, or Cards */}
+              {isLoading ? (
+                <OpportunitySkeleton />
+              ) : queryError ? (
+                <View className="bg-surface rounded-2xl border border-border p-8 items-center justify-center">
+                  <Ionicons name="alert-circle-outline" size={36} color="#ef4444" />
+                  <Text className="text-base font-semibold text-foreground mt-2 mb-1">
+                    Unable to load opportunities
+                  </Text>
+                  <Text className="text-xs text-muted text-center max-w-sm mb-4">
+                    Please check your internet connection and try again.
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => void refetchAllOpps()}
+                    className="bg-primary px-5 py-2.5 rounded-xl"
+                  >
+                    <Text className="text-white text-xs font-bold">
+                      Retry Loading
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : filteredAndSorted.length > 0 ? (
+                <View className="w-full">
+                  {filteredAndSorted.map((item) => (
+                    <OpportunityCard
+                      key={item.id}
+                      opportunity={item}
+                      isBookmarked={isBookmarked(item.id)}
+                      onToggleBookmark={toggleBookmark}
+                      onPress={() => router.push(`/opportunity/${item.id}`)}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <View className="bg-surface rounded-2xl border border-border p-8 sm:p-12 items-center justify-center">
+                  <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-3">
+                    <Ionicons name="search" size={28} color="#0a7ea4" />
+                  </View>
+                  <Text className="text-lg font-bold text-foreground mb-1">
+                    No matching opportunities
+                  </Text>
+                  <Text className="text-sm text-muted text-center max-w-sm mb-5 leading-relaxed">
+                    We couldn't find any opportunities matching your current filters or search query.
+                  </Text>
+                  <TouchableOpacity
+                    onPress={resetAllFilters}
+                    className="bg-primary px-5 py-2.5 rounded-xl shadow-xs"
+                    activeOpacity={0.8}
+                  >
+                    <Text className="text-white text-xs font-bold">
+                      Clear All Filters & Search
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Supporter Banner & Footer */}
+              <View className="items-center justify-center py-10 mt-8 border-t border-border">
+                <Text className="text-xs uppercase tracking-wider text-muted font-bold mb-3">
+                  Supported by
                 </Text>
                 <TouchableOpacity
-                  onPress={() => {
-                    void refetchAllOpps();
-                  }}
-                  className="bg-primary px-5 py-2 rounded-lg"
+                  onPress={() => Linking.openURL("https://youthcreativityfund.ca/")}
+                  className="items-center"
+                  activeOpacity={0.7}
                 >
-                  <Text className="text-white font-semibold">Retry</Text>
+                  <Text className="text-base font-bold text-primary mb-2.5">
+                    Youth Creativity Fund
+                  </Text>
+                  <Image
+                    source={require("@/assets/images/youth-creativity-fund.svg")}
+                    style={{ width: 180, height: 60 }}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
-              </View>
-            ) : opportunities.length > 0 ? (
-              <View className="gap-3">
-                {opportunities.map((item) => (
-                  <View key={item.id}>
-                    {renderOpportunityCard({ item })}
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View className="items-center justify-center py-8">
-                <Text className="text-muted text-center">
-                  No opportunities found with the selected filters
-                </Text>
-              </View>
-            )}
-          </View>
 
-          {/* Youth Creativity Fund Footer */}
-          <View className="items-center justify-center py-10 mt-6 border-t border-border">
-            <Text className="text-sm text-muted mb-3">Supported by the</Text>
-            <TouchableOpacity 
-              onPress={() => Linking.openURL('https://youthcreativityfund.ca/')}
-              className="items-center"
-              activeOpacity={0.7}
-            >
-              <Text className="text-lg font-bold text-primary mb-3">Youth Creativity Fund</Text>
-              <Image 
-                source={require("@/assets/images/youth-creativity-fund.svg")}
-                style={{ width: 180, height: 60 }}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-
-            {/* Page View Counter all the way at the bottom */}
-            <View className="mt-8 pt-6 border-t border-border/60 items-center w-full">
-              <PageViewBadge page="home" showTotal={true} label="visits" />
+                {/* Page View Counter all the way down at the bottom */}
+                <View className="mt-8 pt-6 border-t border-border/60 items-center w-full">
+                  <PageViewBadge page="home" showTotal={true} label="visits" />
+                </View>
+              </View>
             </View>
           </View>
         </View>
