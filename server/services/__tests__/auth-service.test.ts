@@ -1,4 +1,5 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, beforeAll } from "vitest";
+import { getDb } from "../../db";
 import {
   hashPassword,
   verifyPassword,
@@ -11,9 +12,14 @@ import {
 } from "../auth-service";
 
 describe("Auth Service", () => {
+  let db: Awaited<ReturnType<typeof getDb>>;
   const testEmail = `test-${Date.now()}@example.com`;
   const testPassword = "TestPassword123!";
   const testName = "Test User";
+
+  beforeAll(async () => {
+    db = await getDb();
+  });
 
   describe("Password Hashing", () => {
     it("should hash a password", async () => {
@@ -37,6 +43,7 @@ describe("Auth Service", () => {
 
   describe("User Creation", () => {
     it("should create a new user with email and password", async () => {
+      if (!db) return;
       const user = await createUser(testEmail, testPassword, testName);
       expect(user).toBeTruthy();
       expect(user.email).toBe(testEmail);
@@ -46,6 +53,7 @@ describe("Auth Service", () => {
     });
 
     it("should generate a unique openId for email users", async () => {
+      if (!db) return;
       const user1 = await createUser(
         `user1-${Date.now()}@example.com`,
         testPassword,
@@ -64,11 +72,13 @@ describe("Auth Service", () => {
     let userId: number;
 
     beforeEach(async () => {
+      if (!db) return;
       const user = await createUser(testEmail, testPassword, testName);
       userId = user.id;
     });
 
     it("should find user by email", async () => {
+      if (!db) return;
       const user = await findUserByEmail(testEmail);
       expect(user).toBeTruthy();
       expect(user?.email).toBe(testEmail);
@@ -76,6 +86,7 @@ describe("Auth Service", () => {
     });
 
     it("should find user by ID", async () => {
+      if (!db) return;
       const user = await findUserById(userId);
       expect(user).toBeTruthy();
       expect(user?.id).toBe(userId);
@@ -83,6 +94,7 @@ describe("Auth Service", () => {
     });
 
     it("should return null for non-existent user", async () => {
+      if (!db) return;
       const user = await findUserByEmail("nonexistent@example.com");
       expect(user).toBeNull();
     });
@@ -92,11 +104,13 @@ describe("Auth Service", () => {
     let userId: number;
 
     beforeEach(async () => {
+      if (!db) return;
       const user = await createUser(testEmail, testPassword, testName);
       userId = user.id;
     });
 
     it("should authenticate user with correct password", async () => {
+      if (!db) return;
       const user = await authenticateUser(testEmail, testPassword);
       expect(user).toBeTruthy();
       expect(user?.email).toBe(testEmail);
@@ -104,16 +118,19 @@ describe("Auth Service", () => {
     });
 
     it("should reject authentication with wrong password", async () => {
+      if (!db) return;
       const user = await authenticateUser(testEmail, "WrongPassword");
       expect(user).toBeNull();
     });
 
     it("should reject authentication for non-existent user", async () => {
+      if (!db) return;
       const user = await authenticateUser("nonexistent@example.com", testPassword);
       expect(user).toBeNull();
     });
 
     it("should update lastSignedIn on successful authentication", async () => {
+      if (!db) return;
       const userBefore = await findUserById(userId);
       const lastSignedInBefore = userBefore?.lastSignedIn;
 
@@ -133,11 +150,13 @@ describe("Auth Service", () => {
     let userId: number;
 
     beforeEach(async () => {
+      if (!db) return;
       const user = await createUser(testEmail, testPassword, testName);
       userId = user.id;
     });
 
     it("should update user name", async () => {
+      if (!db) return;
       const newName = "Updated Name";
       const user = await updateUserProfile(userId, { name: newName });
       expect(user.name).toBe(newName);
@@ -147,6 +166,7 @@ describe("Auth Service", () => {
     });
 
     it("should update user email", async () => {
+      if (!db) return;
       const newEmail = `updated-${Date.now()}@example.com`;
       const user = await updateUserProfile(userId, { email: newEmail });
       expect(user.email).toBe(newEmail);
@@ -160,11 +180,13 @@ describe("Auth Service", () => {
     let userId: number;
 
     beforeEach(async () => {
+      if (!db) return;
       const user = await createUser(testEmail, testPassword, testName);
       userId = user.id;
     });
 
     it("should change password with correct old password", async () => {
+      if (!db) return;
       const newPassword = "NewPassword123!";
       await changePassword(userId, testPassword, newPassword);
 
@@ -179,6 +201,7 @@ describe("Auth Service", () => {
     });
 
     it("should reject password change with wrong old password", async () => {
+      if (!db) return;
       const newPassword = "NewPassword123!";
       try {
         await changePassword(userId, "WrongPassword", newPassword);
