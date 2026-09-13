@@ -20,6 +20,7 @@ import {
   getPageViewCount,
   getAllPageViewStats,
 } from "../db";
+import { initDatabaseSync } from "../services/db-sync";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -108,6 +109,24 @@ async function startServer() {
     }
   });
 
+  app.get("/api/db/sync", async (_req, res) => {
+    try {
+      const result = await initDatabaseSync();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  app.post("/api/db/sync", async (_req, res) => {
+    try {
+      const result = await initDatabaseSync();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
   app.get("/api/opportunities/approve-all", async (_req, res) => {
     try {
       const count = await approveAllActiveOpportunities();
@@ -185,23 +204,32 @@ async function startServer() {
     console.log(`[api] server listening on port ${port}`);
   });
 
-  // Initialize the expiration scheduler
-  initExpirationScheduler();
+  // Ensure database schema, migrations, and verified opportunities are synced on startup
+  initDatabaseSync()
+    .then(() => {
+      // Initialize the expiration scheduler
+      initExpirationScheduler();
 
-  // Initialize the reminder scheduler
-  startReminderScheduler();
+      // Initialize the reminder scheduler
+      startReminderScheduler();
 
-  // Initialize the opportunity discovery scheduler
-  startOpportunityDiscoveryScheduler();
+      // Initialize the opportunity discovery scheduler
+      startOpportunityDiscoveryScheduler();
 
-  // Ensure active discovered opportunities are approved
-  approveAllActiveOpportunities().catch(console.error);
+      // Ensure active discovered opportunities are approved
+      approveAllActiveOpportunities().catch(console.error);
 
-  // Ensure existing users are email-verified so verification does not block them
-  ensureAllUsersEmailVerified().catch(console.error);
-
-  // Initialize page views table
-  initPageViewsTable().catch(console.error);
+      // Ensure existing users are email-verified so verification does not block them
+      ensureAllUsersEmailVerified().catch(console.error);
+    })
+    .catch((error) => {
+      console.error("[Startup] Database sync failed:", error);
+      initExpirationScheduler();
+      startReminderScheduler();
+      startOpportunityDiscoveryScheduler();
+      approveAllActiveOpportunities().catch(console.error);
+      ensureAllUsersEmailVerified().catch(console.error);
+    });
 }
 
 startServer().catch(console.error);
