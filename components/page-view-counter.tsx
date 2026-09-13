@@ -99,17 +99,12 @@ export function PageViewBadge({
   const { views, totalViews, isLoading } = usePageView(page);
 
   const count = showTotal ? totalViews : (views ?? totalViews);
-
-  if (isLoading && count === null) {
-    return null;
-  }
-
-  const formattedCount = (count ?? 0).toLocaleString();
+  const formattedCount = count !== null ? count.toLocaleString() : "···";
   const displayLabel = label || (showTotal ? "Total Site Views" : "Views");
 
   return (
     <View
-      className={`flex-row items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-border ${className}`}
+      className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface border border-border shadow-xs ${className}`}
       style={{ alignSelf: "flex-start" }}
     >
       <Text style={{ fontSize: 13 }}>👀</Text>
@@ -117,6 +112,37 @@ export function PageViewBadge({
         {formattedCount}{" "}
         <Text className="text-xs font-normal text-muted">{displayLabel}</Text>
       </Text>
+    </View>
+  );
+}
+
+export function PageViewCard({
+  page = "home",
+  showTotal = true,
+  label = "Total Page Views",
+  className = "",
+}: {
+  page?: string;
+  showTotal?: boolean;
+  label?: string;
+  className?: string;
+}) {
+  const { views, totalViews } = usePageView(page);
+  const count = showTotal ? totalViews : (views ?? totalViews);
+  const formattedCount = count !== null ? count.toLocaleString() : "···";
+
+  return (
+    <View
+      className={`flex-row items-center justify-between px-4 py-3 bg-surface border border-border rounded-xl shadow-xs ${className}`}
+    >
+      <View className="flex-row items-center gap-2">
+        <Text style={{ fontSize: 16 }}>📊</Text>
+        <Text className="text-sm font-semibold text-foreground">{label}</Text>
+      </View>
+      <View className="flex-row items-center gap-1 bg-primary/10 px-3 py-1 rounded-full">
+        <Text style={{ fontSize: 12 }}>👀</Text>
+        <Text className="text-sm font-bold text-primary">{formattedCount}</Text>
+      </View>
     </View>
   );
 }

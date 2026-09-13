@@ -20,7 +20,7 @@ import {
 } from "@/shared/opportunity-tags";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunities } from "@/lib/opportunities-api";
-import { PageViewBadge } from "@/components/page-view-counter";
+import { PageViewBadge, PageViewCard } from "@/components/page-view-counter";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -260,10 +260,11 @@ export default function HomeScreen() {
         <View className="gap-4">
           {/* Top Navigation / Auth Bar */}
           <View className="flex-row justify-between items-center pb-1">
-            <View className="flex-row items-center">
+            <View className="flex-row items-center gap-2">
               <Text className="text-xs font-medium text-muted">Waterloo Region, ON</Text>
             </View>
             <View className="flex-row items-center gap-2">
+              <PageViewBadge page="home" showTotal={true} label="views" />
               {user ? (
                 <TouchableOpacity
                   onPress={() => router.push("/(tabs)/profile" as any)}
@@ -321,12 +322,11 @@ export default function HomeScreen() {
                 Discover <Text className="italic" style={{ fontStyle: "italic" }}>opportunities</Text> for students in the Waterloo region
               </Text>
               <View
-                className="h-[1px] bg-border mt-2 mb-1"
+                className="h-[1px] bg-border mt-2 mb-2"
                 style={{ width: "100%" }}
               />
-              <View className="flex-row items-center justify-between w-full pt-1">
-                <PageViewBadge page="home" showTotal={true} label="site views" />
-                <Text className="text-xs text-muted">Waterloo Region</Text>
+              <View className="w-full">
+                <PageViewCard page="home" showTotal={true} label="Total Platform Visits" />
               </View>
             </View>
           </View>

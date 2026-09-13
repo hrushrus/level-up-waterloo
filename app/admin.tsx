@@ -58,6 +58,10 @@ export default function AdminDashboard() {
     enabled: user?.role === "admin",
   });
 
+  const { data: viewStats_data } = trpc.views.stats.useQuery(undefined, {
+    enabled: user?.role === "admin",
+  });
+
   const addOppMutation = trpc.admin.addOpportunity.useMutation();
   const inactivateMutation = trpc.admin.inactivateOpportunity.useMutation();
   const deleteMutation = trpc.admin.deleteOpportunity.useMutation();
@@ -590,6 +594,33 @@ export default function AdminDashboard() {
                       <Text className="text-sm font-semibold text-primary">{count as number}</Text>
                     </View>
                   ))}
+                </View>
+
+                {/* Page Views Analytics */}
+                <View className="bg-surface rounded-lg p-4 border border-border mt-4">
+                  <View className="flex-row justify-between items-center mb-3">
+                    <Text className="text-sm font-semibold text-foreground">👀 Page Views & Traffic</Text>
+                    <View className="bg-primary/10 px-3 py-1 rounded-full">
+                      <Text className="text-xs font-bold text-primary">
+                        Total: {viewStats_data?.total ?? 0}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {viewStats_data?.pages && Object.keys(viewStats_data.pages).length > 0 ? (
+                    Object.entries(viewStats_data.pages)
+                      .sort((a, b) => (b[1] as number) - (a[1] as number))
+                      .map(([page, count]) => (
+                        <View key={page} className="flex-row justify-between py-2 border-b border-border">
+                          <Text className="text-sm text-foreground">{page}</Text>
+                          <Text className="text-sm font-semibold text-primary">
+                            {(count as number).toLocaleString()} views
+                          </Text>
+                        </View>
+                      ))
+                  ) : (
+                    <Text className="text-xs text-muted">No page views recorded yet</Text>
+                  )}
                 </View>
               </View>
             </View>
