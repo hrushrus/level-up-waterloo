@@ -43,6 +43,7 @@ export async function createUser(
     passwordHash,
     name,
     loginMethod: "email",
+    emailVerified: true,
   });
 
   // Get the inserted user

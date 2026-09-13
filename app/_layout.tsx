@@ -40,20 +40,13 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
-    const inVerifyEmailScreen = segments[1] === "verify-email";
 
-    // Signed-in users must verify email before using account-specific flows.
-    if (isSignedIn && needsEmailVerification && !inVerifyEmailScreen) {
-      router.replace("/(auth)/verify-email");
-      return;
-    }
-
-    // Signed in with verified email but in auth group - redirect to home
-    if (isSignedIn && !needsEmailVerification && inAuthGroup) {
+    // Signed in and inside auth screens - redirect to home
+    if (isSignedIn && inAuthGroup) {
       router.replace("/(tabs)");
       return;
     }
-  }, [isSignedIn, isLoading, needsEmailVerification, segments]);
+  }, [isSignedIn, isLoading, segments]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

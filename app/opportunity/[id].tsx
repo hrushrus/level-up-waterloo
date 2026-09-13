@@ -5,6 +5,7 @@ import { useBookmarks } from "@/lib/bookmark-context";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunity } from "@/lib/opportunities-api";
+import { PageViewBadge } from "@/components/page-view-counter";
 
 interface Opportunity {
   id: number;
@@ -126,8 +127,8 @@ export default function OpportunityDetailScreen() {
           </View>
 
           {/* Title and Category */}
-          <View className="gap-2">
-            <View className="flex-row gap-2 flex-wrap">
+            <View className="gap-2">
+            <View className="flex-row gap-2 flex-wrap items-center">
               <View className="bg-primary/10 px-3 py-1 rounded-full">
                 <Text className="text-xs font-medium text-primary capitalize">
                   {opportunity.category.replace("_", " ")}
@@ -140,6 +141,7 @@ export default function OpportunityDetailScreen() {
                   </Text>
                 </View>
               )}
+              <PageViewBadge page={`opp_${opportunity.id}`} label="views" />
             </View>
             <Text className="text-3xl font-bold text-foreground">{opportunity.title}</Text>
             <Text className="text-sm text-muted">Submitted by {opportunity.submittedBy}</Text>

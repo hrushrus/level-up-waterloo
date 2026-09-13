@@ -129,11 +129,20 @@ export default function VerifyEmailScreen() {
         <View className="flex-1 px-6 py-8">
           {/* Header */}
           <View className="mb-8">
-            <Text className="text-4xl font-bold text-foreground mb-2">Verify Email</Text>
+            <Text className="text-4xl font-bold text-foreground mb-2">Account Ready</Text>
             <Text className="text-base text-muted">
-              Enter the verification code sent to your email address
+              Your account is active! You can continue to explore opportunities immediately.
             </Text>
           </View>
+
+          {/* Direct Continue Button */}
+          <TouchableOpacity
+            className="w-full bg-primary rounded-lg py-4 items-center mb-6 shadow-sm"
+            onPress={() => router.replace("/(tabs)")}
+            activeOpacity={0.8}
+          >
+            <Text className="text-white font-bold text-lg">Continue to Opportunities →</Text>
+          </TouchableOpacity>
 
           {/* Error Message */}
           {error && (

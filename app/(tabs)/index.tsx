@@ -20,6 +20,7 @@ import {
 } from "@/shared/opportunity-tags";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOpportunities } from "@/lib/opportunities-api";
+import { PageViewBadge } from "@/components/page-view-counter";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -320,9 +321,13 @@ export default function HomeScreen() {
                 Discover <Text className="italic" style={{ fontStyle: "italic" }}>opportunities</Text> for students in the Waterloo region
               </Text>
               <View
-                className="h-[1px] bg-border mt-2"
+                className="h-[1px] bg-border mt-2 mb-1"
                 style={{ width: "100%" }}
               />
+              <View className="flex-row items-center justify-between w-full pt-1">
+                <PageViewBadge page="home" showTotal={true} label="site views" />
+                <Text className="text-xs text-muted">Waterloo Region</Text>
+              </View>
             </View>
           </View>
 

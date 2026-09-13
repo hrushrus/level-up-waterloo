@@ -10,7 +10,16 @@ import { ENV } from "./env";
 import { initExpirationScheduler } from "../schedulers/expiration-scheduler";
 import { startOpportunityDiscoveryScheduler, triggerOpportunityDiscovery } from "../schedulers/opportunity-discovery-scheduler";
 import { startReminderScheduler } from "../schedulers/reminder-scheduler";
-import { getAllOpportunities, getOpportunityById, approveAllActiveOpportunities } from "../db";
+import {
+  getAllOpportunities,
+  getOpportunityById,
+  approveAllActiveOpportunities,
+  ensureAllUsersEmailVerified,
+  initPageViewsTable,
+  recordPageView,
+  getPageViewCount,
+  getAllPageViewStats,
+} from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -128,6 +137,35 @@ async function startServer() {
     res.json(opportunity);
   });
 
+  app.get("/api/views", async (req, res) => {
+    try {
+      const page = typeof req.query.page === "string" ? req.query.page : "home";
+      const views = await getPageViewCount(page);
+      const totalViews = await getPageViewCount("total");
+      res.json({ page, views, totalViews });
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  app.post("/api/views", async (req, res) => {
+    try {
+      const page = typeof req.body?.page === "string" ? req.body.page : "home";
+      const result = await recordPageView(page);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  app.get("/api/views/stats", async (_req, res) => {
+    try {
+      res.json(await getAllPageViewStats());
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
   app.use(
     "/api/trpc",
     createExpressMiddleware({
@@ -158,6 +196,12 @@ async function startServer() {
 
   // Ensure active discovered opportunities are approved
   approveAllActiveOpportunities().catch(console.error);
+
+  // Ensure existing users are email-verified so verification does not block them
+  ensureAllUsersEmailVerified().catch(console.error);
+
+  // Initialize page views table
+  initPageViewsTable().catch(console.error);
 }
 
 startServer().catch(console.error);

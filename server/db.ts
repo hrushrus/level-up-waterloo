@@ -1,4 +1,4 @@
-import { eq, or, like, inArray, gte, lte, desc, and, isNull, gt } from "drizzle-orm";
+import { eq, or, like, inArray, gte, lte, desc, and, isNull, gt, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, opportunities, Opportunity } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -294,3 +294,160 @@ export async function filterOpportunities(params: FilterParams): Promise<Opportu
     return [];
   }
 }
+
+/**
+ * Ensure all users in database are marked as emailVerified so that
+ * lack of external email service does not lock users out.
+ */
+export async function ensureAllUsersEmailVerified(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  try {
+    const result: any = await db
+      .update(users)
+      .set({ emailVerified: true })
+      .where(eq(users.emailVerified, false));
+    return result?.rowsAffected || 0;
+  } catch (error) {
+    console.error("[Database] Failed to verify all users:", error);
+    return 0;
+  }
+}
+
+let pageViewsTableInitialized = false;
+
+/**
+ * Ensure page_views table exists in MySQL
+ */
+export async function initPageViewsTable(): Promise<void> {
+  if (pageViewsTableInitialized) return;
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS page_views (
+        page VARCHAR(255) PRIMARY KEY,
+        views INT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    pageViewsTableInitialized = true;
+  } catch (error) {
+    console.error("[Database] Failed to initialize page_views table:", error);
+  }
+}
+
+/**
+ * Record a page view and increment total counter
+ */
+export async function recordPageView(
+  page: string = "home"
+): Promise<{ page: string; views: number; totalViews: number }> {
+  const db = await getDb();
+  if (!db) {
+    return { page, views: 1, totalViews: 1 };
+  }
+
+  try {
+    await initPageViewsTable();
+
+    // Increment page counter
+    await db.execute(sql`
+      INSERT INTO page_views (page, views)
+      VALUES (${page}, 1)
+      ON DUPLICATE KEY UPDATE views = views + 1
+    `);
+
+    // If this is not total, also increment total site views
+    if (page !== "total") {
+      await db.execute(sql`
+        INSERT INTO page_views (page, views)
+        VALUES ('total', 1)
+        ON DUPLICATE KEY UPDATE views = views + 1
+      `);
+    }
+
+    const views = await getPageViewCount(page);
+    const totalViews = await getPageViewCount("total");
+
+    return {
+      page,
+      views,
+      totalViews,
+    };
+  } catch (error) {
+    console.error("[Database] Failed to record page view:", error);
+    return { page, views: 0, totalViews: 0 };
+  }
+}
+
+/**
+ * Get view count for a specific page
+ */
+export async function getPageViewCount(page: string = "home"): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  try {
+    await initPageViewsTable();
+    const result: any = await db.execute(sql`
+      SELECT views FROM page_views WHERE page = ${page} LIMIT 1
+    `);
+
+    const rows =
+      Array.isArray(result) && Array.isArray(result[0])
+        ? result[0]
+        : Array.isArray(result)
+        ? result
+        : [];
+    if (rows.length > 0 && rows[0]?.views !== undefined) {
+      return Number(rows[0].views);
+    }
+    return 0;
+  } catch (error) {
+    console.error(`[Database] Failed to get view count for ${page}:`, error);
+    return 0;
+  }
+}
+
+/**
+ * Get stats for all tracked pages
+ */
+export async function getAllPageViewStats(): Promise<{
+  total: number;
+  pages: Record<string, number>;
+}> {
+  const db = await getDb();
+  if (!db) return { total: 0, pages: {} };
+
+  try {
+    await initPageViewsTable();
+    const result: any = await db.execute(sql`SELECT page, views FROM page_views`);
+    const rows =
+      Array.isArray(result) && Array.isArray(result[0])
+        ? result[0]
+        : Array.isArray(result)
+        ? result
+        : [];
+    const pages: Record<string, number> = {};
+    let total = 0;
+
+    for (const row of rows) {
+      if (row.page && row.views !== undefined) {
+        const count = Number(row.views);
+        pages[row.page] = count;
+        if (row.page === "total") {
+          total = count;
+        }
+      }
+    }
+
+    return { total, pages };
+  } catch (error) {
+    console.error("[Database] Failed to get all page view stats:", error);
+    return { total: 0, pages: {} };
+  }
+}
+

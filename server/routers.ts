@@ -66,6 +66,29 @@ export const appRouter = router({
 
   admin: adminRouter,
   import: importRouter,
+
+  views: router({
+    // Record page view
+    record: publicProcedure
+      .input(z.object({ page: z.string().default("home") }))
+      .mutation(async ({ input }) => {
+        return await db.recordPageView(input.page);
+      }),
+
+    // Get view count for a specific page
+    get: publicProcedure
+      .input(z.object({ page: z.string().default("home") }))
+      .query(async ({ input }) => {
+        const views = await db.getPageViewCount(input.page);
+        const totalViews = await db.getPageViewCount("total");
+        return { page: input.page, views, totalViews };
+      }),
+
+    // Get statistics for all pages
+    stats: publicProcedure.query(async () => {
+      return await db.getAllPageViewStats();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

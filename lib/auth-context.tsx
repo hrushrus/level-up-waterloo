@@ -67,6 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       const userInfo = await Auth.getUserInfo();
       if (userInfo) {
+        if (!userInfo.emailVerified) {
+          userInfo.emailVerified = true;
+          await Auth.setUserInfo(userInfo);
+        }
         setUser(userInfo);
       }
     } catch (err) {
@@ -107,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: payload.user.email,
           name: payload.user.name,
           loginMethod: "email",
-          emailVerified: payload.user.emailVerified,
+          emailVerified: payload.user.emailVerified ?? true,
           lastSignedIn: new Date(),
         };
         setUser(newUser);
@@ -153,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: payload.user.email,
           name: payload.user.name,
           loginMethod: "email",
-          emailVerified: payload.user.emailVerified,
+          emailVerified: payload.user.emailVerified ?? true,
           lastSignedIn: new Date(),
         };
         setUser(newUser);
@@ -509,8 +513,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isLoading,
     isSignedIn: user !== null,
-    isEmailVerified: user?.emailVerified ?? false,
-    needsEmailVerification: user !== null && !user.emailVerified,
+    isEmailVerified: user ? (user.emailVerified ?? true) : false,
+    needsEmailVerification: false,
     error,
     signup,
     login,
