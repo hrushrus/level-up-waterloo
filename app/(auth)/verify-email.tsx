@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { useAuth } from "@/lib/auth-context";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
@@ -35,7 +36,8 @@ export default function VerifyEmailScreen() {
       setError("");
       setIsLoading(true);
 
-      const response = await fetch("http://127.0.0.1:3000/api/trpc/auth.verifyEmail", {
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.verifyEmail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,7 +80,8 @@ export default function VerifyEmailScreen() {
       setError("");
       setResendLoading(true);
 
-      const response = await fetch("http://127.0.0.1:3000/api/trpc/auth.sendVerificationEmail", {
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.sendVerificationEmail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

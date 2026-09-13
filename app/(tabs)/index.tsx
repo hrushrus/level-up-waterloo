@@ -13,6 +13,7 @@ import { useState, useEffect, useMemo } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useRouter } from "expo-router";
 import { useBookmarks } from "@/lib/bookmark-context";
+import { useAuth } from "@/lib/auth-context";
 import {
   OPPORTUNITY_TAGS,
   type OpportunityTag,
@@ -71,7 +72,9 @@ interface Opportunity {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const [showSignupBanner, setShowSignupBanner] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLevel, setSelectedLevel] = useState("both");
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -254,6 +257,44 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-4">
+          {/* Top Navigation / Auth Bar */}
+          <View className="flex-row justify-between items-center pb-1">
+            <View className="flex-row items-center">
+              <Text className="text-xs font-medium text-muted">Waterloo Region, ON</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              {user ? (
+                <TouchableOpacity
+                  onPress={() => router.push("/(tabs)/profile" as any)}
+                  className="flex-row items-center bg-surface border border-border px-3 py-1.5 rounded-full"
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-xs mr-1.5">👤</Text>
+                  <Text className="text-xs font-semibold text-foreground" numberOfLines={1}>
+                    {user.name ? user.name.split(" ")[0] : "Account"}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <View className="flex-row items-center gap-2">
+                  <TouchableOpacity
+                    onPress={() => router.push("/(auth)/login" as any)}
+                    className="px-3 py-1.5 rounded-full"
+                    activeOpacity={0.7}
+                  >
+                    <Text className="text-sm font-semibold text-muted">Sign In</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => router.push("/(auth)/signup" as any)}
+                    className="bg-primary px-4 py-1.5 rounded-full shadow-sm"
+                    activeOpacity={0.8}
+                  >
+                    <Text className="text-sm font-bold text-white">Sign Up</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+
           {/* Header with Logo */}
           <View className="gap-3 items-center mb-2">
             <View
@@ -284,6 +325,45 @@ export default function HomeScreen() {
               />
             </View>
           </View>
+
+          {/* Guest Sign Up Callout Banner */}
+          {!user && showSignupBanner && (
+            <View className="bg-primary/10 border border-primary/25 rounded-2xl p-4">
+              <View className="flex-row items-start justify-between">
+                <View className="flex-1 pr-3">
+                  <Text className="text-base font-bold text-foreground mb-1">
+                    Join LevelUp Waterloo
+                  </Text>
+                  <Text className="text-sm text-muted mb-3 leading-snug">
+                    Create a free student account to save opportunities, track deadlines, and sync your bookmarks.
+                  </Text>
+                  <View className="flex-row items-center gap-2.5">
+                    <TouchableOpacity
+                      onPress={() => router.push("/(auth)/signup" as any)}
+                      className="bg-primary px-4 py-2 rounded-lg"
+                      activeOpacity={0.8}
+                    >
+                      <Text className="text-white text-xs font-bold">Sign Up Free</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => router.push("/(auth)/login" as any)}
+                      className="bg-surface border border-border px-3.5 py-2 rounded-lg"
+                      activeOpacity={0.8}
+                    >
+                      <Text className="text-foreground text-xs font-semibold">Sign In</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowSignupBanner(false)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  className="p-1"
+                >
+                  <Text className="text-muted text-sm font-semibold">✕</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
 
           {/* Search Bar */}
           <View className="bg-surface rounded-lg border border-border px-4 py-3 flex-row items-center">

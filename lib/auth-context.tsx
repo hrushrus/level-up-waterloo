@@ -89,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.result.data.user.email,
           name: data.result.data.user.name,
           loginMethod: "email",
+          emailVerified: data.result.data.user.emailVerified,
           lastSignedIn: new Date(),
         };
         setUser(newUser);
@@ -134,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.result.data.user.email,
           name: data.result.data.user.name,
           loginMethod: "email",
+          emailVerified: data.result.data.user.emailVerified,
           lastSignedIn: new Date(),
         };
         setUser(newUser);
@@ -205,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.result.data.user.email,
           name: data.result.data.user.name,
           loginMethod: "email",
+          emailVerified: data.result.data.user.emailVerified ?? true,
           lastSignedIn: new Date(),
         };
         setUser(verifiedUser);

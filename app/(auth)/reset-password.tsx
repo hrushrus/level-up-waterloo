@@ -3,6 +3,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -32,18 +33,9 @@ export default function ResetPasswordScreen() {
       setIsValidating(true);
       setError("");
 
-      const response = await fetch("http://127.0.0.1:3000/api/trpc/auth.validateResetToken", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      // For GET requests with input, we need to pass token as query param
-      // This is a workaround - ideally should be POST
+      const apiUrl = getApiBaseUrl();
       const validateResponse = await fetch(
-        `http://127.0.0.1:3000/api/trpc/auth.validateResetToken?input=${encodeURIComponent(JSON.stringify({ token: resetToken }))}`,
+        `${apiUrl}/api/trpc/auth.validateResetToken?input=${encodeURIComponent(JSON.stringify({ token: resetToken }))}`,
         {
           method: "GET",
           headers: {
@@ -93,7 +85,8 @@ export default function ResetPasswordScreen() {
       setError("");
       setIsLoading(true);
 
-      const response = await fetch("http://127.0.0.1:3000/api/trpc/auth.resetPassword", {
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.resetPassword`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

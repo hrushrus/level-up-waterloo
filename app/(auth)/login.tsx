@@ -55,10 +55,23 @@ export default function LoginScreen() {
     router.push("/(auth)/signup" as any);
   };
 
+  const handleBackToBrowsing = () => {
+    router.replace("/(tabs)" as any);
+  };
+
   return (
     <ScreenContainer className="bg-background">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="flex-1">
         <View className="flex-1 justify-center px-6 py-8">
+          {/* Back to Browsing Button */}
+          <TouchableOpacity
+            onPress={handleBackToBrowsing}
+            className="flex-row items-center mb-4 py-2 self-start"
+            activeOpacity={0.7}
+          >
+            <Text className="text-primary text-base font-semibold">← Back to Opportunities</Text>
+          </TouchableOpacity>
+
           {/* Header */}
           <View className="mb-8 items-center">
             <Text className="text-4xl font-bold text-foreground mb-2">Welcome Back</Text>

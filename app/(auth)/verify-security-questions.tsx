@@ -3,6 +3,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 interface SecurityQuestion {
   questionId: number;
@@ -23,7 +24,7 @@ export default function VerifySecurityQuestionsScreen() {
   const [success, setSuccess] = useState(false);
   const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
-  // Load security questions when email is provided
+  // Auto-load questions if email is provided in params
   useEffect(() => {
     if (email && !questionsLoaded) {
       loadSecurityQuestions();
@@ -35,8 +36,9 @@ export default function VerifySecurityQuestionsScreen() {
       setError("");
       setIsLoadingQuestions(true);
 
+      const apiUrl = getApiBaseUrl();
       const response = await fetch(
-        `http://127.0.0.1:3000/api/trpc/auth.getSecurityQuestions?input=${encodeURIComponent(JSON.stringify({ email }))}`,
+        `${apiUrl}/api/trpc/auth.getSecurityQuestions?input=${encodeURIComponent(JSON.stringify({ email }))}`,
         {
           method: "GET",
           headers: {
@@ -88,7 +90,8 @@ export default function VerifySecurityQuestionsScreen() {
         answer: answers[q.questionId],
       }));
 
-      const response = await fetch("http://127.0.0.1:3000/api/trpc/auth.verifySecurityQuestions", {
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.verifySecurityQuestions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

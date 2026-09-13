@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -23,7 +24,8 @@ export default function ForgotPasswordScreen() {
       setError("");
       setIsLoading(true);
 
-      const response = await fetch("http://127.0.0.1:3000/api/trpc/auth.requestPasswordReset", {
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.requestPasswordReset`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

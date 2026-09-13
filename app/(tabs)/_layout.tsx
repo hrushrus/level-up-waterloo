@@ -6,11 +6,13 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useBookmarks } from "@/lib/bookmark-context";
 import { Platform } from "react-native";
 import { useColors } from "@/hooks/use-colors";
+import { useAuth } from "@/lib/auth-context";
 
 export default function TabLayout() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { bookmarkedIds } = useBookmarks();
+  const { user } = useAuth();
   const bottomPadding = Platform.OS === "web" ? 12 : Math.max(insets.bottom, 8);
   const tabBarHeight = 56 + bottomPadding;
 
@@ -47,7 +49,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: user ? "Profile" : "Account",
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />

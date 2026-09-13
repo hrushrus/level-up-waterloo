@@ -4,6 +4,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { trpc } from "@/lib/trpc";
 import { useRouter } from "expo-router";
 import { useBookmarks } from "@/lib/bookmark-context";
+import { useAuth } from "@/lib/auth-context";
 
 interface Opportunity {
   id: number;
@@ -19,6 +20,7 @@ interface Opportunity {
 
 export default function BookmarksScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
   const [bookmarkedOpportunities, setBookmarkedOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +92,23 @@ export default function BookmarksScreen() {
               {bookmarkedOpportunities.length} opportunity{bookmarkedOpportunities.length !== 1 ? "ies" : ""} saved
             </Text>
           </View>
+
+          {/* Guest sync prompt */}
+          {!user && (
+            <View className="bg-surface border border-border rounded-xl p-3.5 flex-row items-center justify-between">
+              <View className="flex-1 mr-3">
+                <Text className="text-xs font-semibold text-foreground mb-0.5">Want to sync your bookmarks?</Text>
+                <Text className="text-xs text-muted">Sign up to keep your saved opportunities across devices.</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => router.push("/(auth)/signup" as any)}
+                className="bg-primary px-3.5 py-1.5 rounded-lg"
+                activeOpacity={0.8}
+              >
+                <Text className="text-white text-xs font-bold">Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Empty State */}
           {bookmarkedOpportunities.length === 0 && !loading && (

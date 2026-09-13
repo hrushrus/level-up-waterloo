@@ -37,31 +37,44 @@ export default function ProfileScreen() {
         <View className="flex-1 px-6 py-8">
           {/* Header */}
           <View className="mb-8">
-            <Text className="text-4xl font-bold text-foreground mb-2">Profile</Text>
+            <Text className="text-4xl font-bold text-foreground mb-2">
+              {user ? "Profile" : "Account"}
+            </Text>
             <Text className="text-base text-muted">
-              {user ? "Manage your account settings" : "Sign in to manage your account"}
+              {user ? "Manage your account settings" : "Sign up or sign in to your account"}
             </Text>
           </View>
 
           {!user && (
             <View className="bg-surface border border-border rounded-2xl p-6 mb-8">
-              <Text className="text-2xl font-bold text-foreground mb-3">Browse Without an Account</Text>
-              <Text className="text-base text-muted mb-6 leading-relaxed">
-                You can view, search, bookmark, and open opportunity details without signing in.
-                Create an account only if you want account-based features later.
-              </Text>
+              <View className="mb-4">
+                <Text className="text-2xl font-bold text-foreground mb-2">
+                  Create an Account or Sign In
+                </Text>
+                <Text className="text-base text-muted leading-relaxed">
+                  Join LevelUp Waterloo to save opportunities, track upcoming deadlines, sync bookmarks across devices, and get personalized recommendations.
+                </Text>
+              </View>
+
               <TouchableOpacity
-                className="w-full bg-primary rounded-lg py-3 items-center mb-3"
-                onPress={() => router.push("/(auth)/login" as any)}
-              >
-                <Text className="text-white font-semibold text-base">Sign In</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="w-full bg-surface border border-border rounded-lg py-3 items-center"
+                className="w-full bg-primary rounded-lg py-3.5 items-center mb-3"
                 onPress={() => router.push("/(auth)/signup" as any)}
               >
-                <Text className="text-foreground font-semibold text-base">Create Account</Text>
+                <Text className="text-white font-bold text-base">Sign Up (Create Account)</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                className="w-full bg-surface border border-border rounded-lg py-3.5 items-center mb-4"
+                onPress={() => router.push("/(auth)/login" as any)}
+              >
+                <Text className="text-foreground font-semibold text-base">Sign In to Existing Account</Text>
+              </TouchableOpacity>
+
+              <View className="border-t border-border pt-4">
+                <Text className="text-xs text-muted text-center leading-relaxed">
+                  You can also continue browsing and exploring opportunities as a guest anytime.
+                </Text>
+              </View>
             </View>
           )}
 

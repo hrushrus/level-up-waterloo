@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { SECURITY_QUESTIONS } from "@/constants/security-questions";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 interface SelectedQuestion {
   questionId: number;
@@ -58,7 +59,8 @@ export default function SecurityQuestionsScreen() {
       setError("");
       setIsLoading(true);
 
-      const response = await fetch("http://127.0.0.1:3000/api/trpc/auth.setSecurityQuestions", {
+      const apiUrl = getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/trpc/auth.setSecurityQuestions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
