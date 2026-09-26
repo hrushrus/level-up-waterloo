@@ -1,7 +1,7 @@
 import { Platform, Share } from "react-native";
 
 export const SITE_URL = "https://waterloo-student-opps.expo.app";
-export const SITE_NAME = "Level Up Waterloo";
+export const SITE_NAME = "Radar KW";
 export const SITE_TAGLINE =
   "Connecting local high school and middle school students with jobs, volunteering, competitions, and grants across Waterloo Region.";
 

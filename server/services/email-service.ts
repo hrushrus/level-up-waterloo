@@ -86,7 +86,7 @@ function generateEmailTemplate(
       <body>
         <div class="container">
           <div class="header">
-            <h1>LevelUp <span style="color: #f59e0b;">Waterloo</span></h1>
+            <h1>Radar <span style="color: #f59e0b;">KW</span></h1>
             <p>Opportunity Deadline Reminder</p>
           </div>
 
@@ -117,13 +117,13 @@ function generateEmailTemplate(
 
             <p>
               Best of luck with your applications!<br>
-              <strong>The LevelUp Waterloo Team</strong>
+              <strong>The Radar KW Team</strong>
             </p>
           </div>
 
           <div class="footer">
             <p>
-              You received this email because you bookmarked this opportunity on LevelUp Waterloo.
+              You received this email because you bookmarked this opportunity on Radar KW.
               <br>
               <a href="#" style="color: #d97706; text-decoration: none; font-weight: 600;">Manage preferences</a>
             </p>

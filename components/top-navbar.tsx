@@ -60,7 +60,7 @@ export function TopNavbar() {
           </View>
           <View>
             <Text className="text-base font-bold text-foreground tracking-tight">
-              LevelUp <Text className="text-amber-500 font-black">Waterloo</Text>
+              Radar <Text className="text-amber-500 font-black">KW</Text>
             </Text>
           </View>
         </TouchableOpacity>
@@ -241,7 +241,7 @@ export function TopNavbar() {
       <ShareModal
         visible={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
-        title="Level Up Waterloo"
+        title="Radar KW"
         summary="Discover free internships, volunteer hours, STEM competitions, scholarships, and extracurriculars for Waterloo Region students."
         url={getPlatformShareUrl()}
         type="website"

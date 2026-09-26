@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LevelUp Waterloo — a full-stack app for discovering volunteering opportunities and extracurricular activities for students in the Waterloo region. Built with React Native (Expo) + Express.js + tRPC + MySQL (Drizzle ORM).
+Radar KW (formerly LevelUp Waterloo) — a full-stack app for discovering volunteering opportunities and extracurricular activities for students in the Waterloo region. Built with React Native (Expo) + Express.js + tRPC + MySQL (Drizzle ORM).
 
 ## Commands
 

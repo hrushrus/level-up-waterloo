@@ -237,7 +237,7 @@ export default function HomeScreen() {
                 onPress={() => setSharePlatformModalOpen(true)}
                 className="bg-zinc-800/90 hover:bg-zinc-700/90 border border-zinc-700 px-3 py-1 rounded-full flex-row items-center gap-1.5 shadow-xs"
                 activeOpacity={0.8}
-                accessibilityLabel="Share Level Up Waterloo"
+                accessibilityLabel="Share Radar KW"
               >
                 <Ionicons name="share-social-outline" size={13} color="#fbbf24" />
                 <Text className="text-xs font-bold text-zinc-200">
@@ -1085,7 +1085,7 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                   <Text className="text-sm font-bold text-foreground mb-1">
-                    Share Level Up Waterloo With Classmates & Teachers
+                    Share Radar KW With Classmates & Teachers
                   </Text>
                   <Text className="text-xs text-muted leading-relaxed">
                     Help other local students discover jobs, volunteer hours, and grants. Share the platform in your school group chats, clubs, or with educators.
@@ -1096,7 +1096,7 @@ export default function HomeScreen() {
                   onPress={() => setSharePlatformModalOpen(true)}
                   className="bg-amber-400 hover:bg-amber-500 border border-amber-500 px-5 py-2.5 rounded-full flex-row items-center gap-2 shadow-xs"
                   activeOpacity={0.85}
-                  accessibilityLabel="Share Level Up Waterloo platform"
+                  accessibilityLabel="Share Radar KW platform"
                 >
                   <Ionicons name="share-social" size={15} color="#000" />
                   <Text className="text-sm font-black text-black">Share Platform</Text>
@@ -1109,7 +1109,7 @@ export default function HomeScreen() {
                   <View className="flex-row items-center gap-2 mb-1.5">
                     <Ionicons name="heart" size={16} color="#d97706" />
                     <Text className="text-xs uppercase tracking-wider font-bold text-amber-800">
-                      Keep Level Up Waterloo Free & Fast
+                      Keep Radar KW Free & Fast
                     </Text>
                   </View>
                   <Text className="text-sm font-bold text-foreground mb-1">
@@ -1163,7 +1163,7 @@ export default function HomeScreen() {
       <ShareModal
         visible={sharePlatformModalOpen}
         onClose={() => setSharePlatformModalOpen(false)}
-        title="Level Up Waterloo"
+        title="Radar KW"
         summary="Discover free internships, volunteer hours, STEM competitions, scholarships, and extracurricular programs for students across Waterloo Region."
         url={getPlatformShareUrl()}
         type="website"

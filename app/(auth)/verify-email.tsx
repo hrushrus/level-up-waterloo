@@ -209,7 +209,7 @@ export default function VerifyEmailScreen() {
             <Text className="text-sm text-muted leading-relaxed">
               1. Check your email for a verification code{"\n"}
               2. Enter the code above{"\n"}
-              3. Your account will be verified and you can start using LevelUp Waterloo
+              3. Your account will be verified and you can start using Radar KW
             </Text>
           </View>
 

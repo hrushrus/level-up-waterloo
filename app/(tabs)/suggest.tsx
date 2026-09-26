@@ -118,7 +118,7 @@ export default function SuggestScreen() {
               </Text>
             </View>
             <Text className="text-sm text-muted leading-relaxed">
-              Help keep Level Up Waterloo comprehensive! Suggest a new youth opportunity or a local organization/website for our crawler to monitor.
+              Help keep Radar KW comprehensive! Suggest a new youth opportunity or a local organization/website for our crawler to monitor.
             </Text>
           </View>
 
@@ -165,7 +165,7 @@ export default function SuggestScreen() {
                 Thank You for the Suggestion!
               </Text>
               <Text className="text-sm text-muted text-center max-w-md mb-6 leading-relaxed">
-                Your suggestion for <Text className="font-bold text-foreground">"{title}"</Text> has been submitted to the Level Up Waterloo team. We will review it and add it to our platform.
+                Your suggestion for <Text className="font-bold text-foreground">"{title}"</Text> has been submitted to the Radar KW team. We will review it and add it to our platform.
               </Text>
 
               <View className="flex-row flex-wrap gap-3 justify-center w-full max-w-sm">

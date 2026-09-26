@@ -190,11 +190,11 @@ export default function DonateScreen() {
             </View>
 
             <Text className="text-3xl sm:text-4xl font-black text-foreground text-center tracking-tight mb-3">
-              Support Level Up <Text className="text-amber-500">Waterloo</Text>
+              Support Radar <Text className="text-amber-500">KW</Text>
             </Text>
 
             <Text className="text-base text-muted text-center max-w-2xl leading-relaxed">
-              Level Up Waterloo is 100% free, ad-free, and independent. We connect 30,000+ local middle and high school students across Waterloo Region with verified jobs, volunteering, competitions, and grants.
+              Radar KW is 100% free, ad-free, and independent. We connect 30,000+ local middle and high school students across Waterloo Region with verified jobs, volunteering, competitions, and grants.
             </Text>
           </View>
 
@@ -309,7 +309,7 @@ export default function DonateScreen() {
                 Thank You for Supporting Local Youth!
               </Text>
               <Text className="text-base text-muted max-w-lg mb-4 leading-relaxed">
-                Your contribution of <Text className="font-bold text-foreground">${lastPledgedAmount} CAD</Text> has been recorded. You are helping keep Level Up Waterloo free and active for students across our community!
+                Your contribution of <Text className="font-bold text-foreground">${lastPledgedAmount} CAD</Text> has been recorded. You are helping keep Radar KW free and active for students across our community!
               </Text>
 
               {showOnWall ? (
@@ -369,7 +369,7 @@ export default function DonateScreen() {
                 </View>
 
                 <Text className="text-xs text-muted mb-1">
-                  Optional transfer memo: <Text className="font-semibold text-foreground">LevelUp - {isAnonymous || !showOnWall ? "Anonymous" : donorName || "Community Member"}</Text>
+                  Optional transfer memo: <Text className="font-semibold text-foreground">RadarKW - {isAnonymous || !showOnWall ? "Anonymous" : donorName || "Community Member"}</Text>
                 </Text>
                 <Text className="text-2xs text-muted leading-relaxed">
                   No security question needed. Funds deposit automatically and 100% goes to operational costs.
@@ -687,7 +687,7 @@ export default function DonateScreen() {
                       </Text>
                     </View>
                     <Text className="text-xs text-muted leading-relaxed">
-                      Your contribution supports Level Up Waterloo behind the scenes. Nothing will ever be published on the website or Wall of Gratitude.
+                      Your contribution supports Radar KW behind the scenes. Nothing will ever be published on the website or Wall of Gratitude.
                     </Text>
 
                     <View>
@@ -843,7 +843,7 @@ export default function DonateScreen() {
             <View className="gap-4">
               <View className="pb-3 border-b border-border/60">
                 <Text className="text-sm font-bold text-foreground mb-1">
-                  Is Level Up Waterloo free for students?
+                  Is Radar KW free for students?
                 </Text>
                 <Text className="text-xs text-muted leading-relaxed">
                   Yes, 100% free and open. Students, teachers, and parents do not need to pay anything to view, bookmark, or apply to opportunities. Community donations keep the infrastructure running without ads.

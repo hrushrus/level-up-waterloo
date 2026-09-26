@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Admin CLI Tool for LevelUp Waterloo Opportunity Management
+ * Admin CLI Tool for Radar KW Opportunity Management
  * 
  * Usage:
  *   tsx scripts/admin-cli.ts add <title> <category> <deadline>

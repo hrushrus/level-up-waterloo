@@ -63,7 +63,7 @@ export default function ProfileScreen() {
                   Create Account or Sign In
                 </Text>
                 <Text className="text-sm text-muted leading-relaxed">
-                  Join LevelUp Waterloo to save opportunities, track closing deadlines, sync bookmarks across your laptop and phone, and stay ahead.
+                  Join Radar KW to save opportunities, track closing deadlines, sync bookmarks across your laptop and phone, and stay ahead.
                 </Text>
               </View>
 

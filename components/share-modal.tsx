@@ -35,10 +35,10 @@ export function ShareModal({
   if (!visible) return null;
 
   const isOpportunity = type === "opportunity";
-  const shareHeading = isOpportunity ? "Share Opportunity" : "Share Level Up Waterloo";
+  const shareHeading = isOpportunity ? "Share Opportunity" : "Share Radar KW";
   const shareText = isOpportunity
-    ? `Check out "${title}" on Level Up Waterloo!`
-    : "Discover jobs, volunteering, competitions, and grants for students across Waterloo Region on Level Up Waterloo!";
+    ? `Check out "${title}" on Radar KW!`
+    : "Discover jobs, volunteering, competitions, and grants for students across Waterloo Region on Radar KW!";
 
   const handleCopy = async () => {
     const ok = await copyToClipboard(url);
@@ -69,10 +69,10 @@ export function ShareModal({
 
   const handleShareEmail = () => {
     const subject = encodeURIComponent(
-      isOpportunity ? `Student Opportunity: ${title}` : "Check out Level Up Waterloo!"
+      isOpportunity ? `Student Opportunity: ${title}` : "Check out Radar KW!"
     );
     const body = encodeURIComponent(
-      `${shareText}\n\n${summary ? summary + "\n\n" : ""}Learn more or apply here: ${url}\n\n— Shared from Level Up Waterloo (https://waterloo-student-opps.expo.app)`
+      `${shareText}\n\n${summary ? summary + "\n\n" : ""}Learn more or apply here: ${url}\n\n— Shared from Radar KW (https://waterloo-student-opps.expo.app)`
     );
     Linking.openURL(`mailto:?subject=${subject}&body=${body}`).catch(console.error);
   };

@@ -194,7 +194,7 @@ export const appRouter = router({
         return {
           success: true,
           id: result.id,
-          message: "Thank you so much for supporting Level Up Waterloo!",
+          message: "Thank you so much for supporting Radar KW!",
         };
       }),
   }),
