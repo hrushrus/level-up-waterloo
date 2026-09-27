@@ -375,6 +375,62 @@ export const VERIFIED_OPPORTUNITIES: InsertOpportunity[] = [
     type: "in_person",
     duration: "long",
   },
+  {
+    title: "Loran Award 2027",
+    description:
+      "Canada's premier undergraduate merit award valued at up to $100,000 over four years for graduating high school seniors demonstrating integrity, compassion, determination, and community leadership. Open to Grade 12 students across Waterloo Region. Application deadline is October 15, 2026 at 12:00 PM ET.",
+    category: "grant",
+    externalLink: "https://apply.loranscholar.ca/",
+    submittedBy: "Loran Scholars Foundation",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: new Date("2026-10-15T12:00:00-04:00"),
+    isApproved: true,
+    level: "high_school",
+    type: "online",
+    duration: "long",
+  },
+  {
+    title: "Rotary Youth Exchange (District 7080)",
+    description:
+      "Year-long and short-term international youth exchange opportunities for Waterloo Region high school students ages 15.5-18, sponsored locally by the Rotary Club of Kitchener and Rotary Club of Waterloo. Preliminary application deadline is October 15, 2026.",
+    category: "experiential_learning",
+    externalLink: "https://rotary7080.org/",
+    submittedBy: "Rotary District 7080",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: new Date("2026-10-15T23:59:59-04:00"),
+    isApproved: true,
+    level: "high_school",
+    type: "in_person",
+    duration: "long",
+  },
+  {
+    title: "Canadian Senior & Intermediate Mathematics Contests (CSMC & CIMC)",
+    description:
+      "Prestigious University of Waterloo mathematics competitions for secondary students (CIMC for Grades 9-10; CSMC for Grades 11-12) to develop problem-solving skills and qualify for national recognition. School registration deadline is October 22, 2026.",
+    category: "stem_competition",
+    externalLink: "https://cemc.uwaterloo.ca/contests/csimc",
+    submittedBy: "University of Waterloo CEMC",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: new Date("2026-10-22T23:59:59-04:00"),
+    isApproved: true,
+    level: "high_school",
+    type: "in_person",
+    duration: "short",
+  },
+  {
+    title: "Beaver Computing Challenge (BCC)",
+    description:
+      "Interactive computational thinking and problem-solving competition for middle school and high school students (Grades 7-10), organized by the University of Waterloo. School registration deadline is October 26, 2026.",
+    category: "stem_competition",
+    externalLink: "https://cemc.uwaterloo.ca/contests/bcc",
+    submittedBy: "University of Waterloo CEMC",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: new Date("2026-10-26T23:59:59-04:00"),
+    isApproved: true,
+    level: "both",
+    type: "online",
+    duration: "short",
+  },
 ];
 
 export function inferOpportunityTags(opportunity: InsertOpportunity): OpportunityTag[] {

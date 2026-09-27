@@ -186,6 +186,7 @@ These sources provide the broadest coverage and should be checked first.
 | Cambridge Youth Appreciation Awards | Rising Leader, Youth Change Maker, EDI and Outstanding Youth Group recognition | Youth living or studying in Cambridge, ages 12-24 | https://www.cambridge.ca/recreation-culture/civic-recognition/ |
 | Project Astraeus | Engineering, entrepreneurship, mentorship and youth-led local projects | High-school students; program-specific intake | https://www.projectastraeus.org/ |
 | Project Astraeus student hubs | Youth-led community problem solving with mentorship and a project microgrant | Selected projects may receive $750 | https://www.projectastraeus.org/ |
+| Rotary Youth Exchange (District 7080) | International high school exchange sponsored by Kitchener & Waterloo Rotary clubs | Ages 15.5-18; preliminary deadline mid-October | https://rotary7080.org/ |
 
 ## STEM, Competitions and Enrichment
 
@@ -193,6 +194,8 @@ These sources provide the broadest coverage and should be checked first.
 | --- | --- | --- | --- |
 | Waterloo-Wellington FIRST | FIRST LEGO League, FIRST Tech Challenge and FIRST Robotics Competition | Programs span roughly ages 4-18 | https://wwfirst.ca/ |
 | University of Waterloo CEMC contests | Gauss, Pascal, Cayley, Fermat, Fryer, Galois, Hypatia, Euclid and Canadian Computing Competition | Registration is normally coordinated through schools | https://cemc.uwaterloo.ca/contests |
+| Canadian Senior & Intermediate Mathematics Contests (CSMC & CIMC) | Full-solution fall mathematics contests for secondary students | Grades 9-10 & 11-12; school order deadline October 22 | https://cemc.uwaterloo.ca/contests/csimc |
+| Beaver Computing Challenge (BCC) | Computational thinking and logic problem-solving challenge | Grades 7-10; school registration deadline October 26 | https://cemc.uwaterloo.ca/contests/bcc |
 | University of Waterloo science contests | Sir Isaac Newton Physics Contest and Chem 13 News Exam | High-school students; school-coordinated | https://uwaterloo.ca/science/outreach/contests |
 | GeoX Summer Camp | Residential earth and environmental science camp | Students entering Grades 11-12; August 9-15, 2026 | https://uwaterloo.ca/science/outreach/geox-summer-camp |
 | Quantum School for Young Students | Quantum information enrichment and optional local lab day | High-school students; August 4-13, 2026 online, August 17 local lab day | https://uwaterloo.ca/institute-for-quantum-computing/outreach/qsys |
@@ -205,6 +208,7 @@ These sources provide the broadest coverage and should be checked first.
 
 | Program | Opportunity | Eligibility or timing | URL |
 | --- | --- | --- | --- |
+| Loran Award 2027 | Undergraduate merit award up to $100,000 evaluating character, service & leadership | Graduating Grade 12 students; deadline October 15, noon ET | https://apply.loranscholar.ca/ |
 | Youth Creativity Fund | Microgrants up to $1,000 for creative learning or problem-solving projects | Waterloo Region youth ages 15-18; reviewed monthly | https://www.bepwr.ca/youth-creativity-fund |
 | BrainGym KW Youth Scholarship | Academic support, fitness, counselling and arts programming | Ages 8-16 enrolled in WRDSB or WCDSB; applications open each May | https://www.braingymkw.ca/ |
 | Waterloo Region Community Foundation | Student financial assistance and named awards | Primarily graduating students; criteria vary by school and fund | https://www.wrcf.ca/student-financial-assistance |

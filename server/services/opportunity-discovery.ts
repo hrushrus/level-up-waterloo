@@ -819,20 +819,24 @@ async function upsertDiscoveredOpportunity(candidate: DiscoveryCandidate) {
   } as const;
 
   if (existingId) {
+    const updatePayload: Record<string, any> = {
+      description: values.description,
+      category: values.category,
+      externalLink: values.externalLink,
+      isApproved: values.isApproved,
+      level: values.level,
+      type: values.type,
+      duration: values.duration,
+      tags: values.tags,
+      updatedAt: new Date(),
+    };
+    if (values.deadline !== null) {
+      updatePayload.deadline = values.deadline;
+    }
+
     await db
       .update(opportunities)
-      .set({
-        description: values.description,
-        category: values.category,
-        externalLink: values.externalLink,
-        deadline: values.deadline,
-        isApproved: values.isApproved,
-        level: values.level,
-        type: values.type,
-        duration: values.duration,
-        tags: values.tags,
-        updatedAt: new Date(),
-      })
+      .set(updatePayload)
       .where(eq(opportunities.id, existingId));
     return "updated" as const;
   }
