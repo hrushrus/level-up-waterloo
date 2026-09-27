@@ -277,6 +277,104 @@ export const VERIFIED_OPPORTUNITIES: InsertOpportunity[] = [
     type: "in_person",
     duration: "short",
   },
+  {
+    title: "Region of Waterloo Swim Club (ROW Swimming)",
+    description:
+      "Region of Waterloo Swim Club (ROW) provides competitive and developmental youth swim programming in Waterloo Region for ages 7-18, training out of the Waterloo Memorial Recreation Complex (WMRC) and Wilfrid Laurier University.",
+    category: "sports",
+    externalLink: "https://www.rowswimming.ca/",
+    submittedBy: "Region of Waterloo Swim Club",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: null,
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
+  {
+    title: "Waterloo Minor Soccer Club (Waterloo United)",
+    description:
+      "Waterloo United (WMSC) delivers grassroots, recreational, and competitive youth soccer leagues, skill development academies, and futsal programs for children and teens across Waterloo.",
+    category: "sports",
+    externalLink: "https://www.waterloounited.com/",
+    submittedBy: "Waterloo Minor Soccer Club",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: null,
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
+  {
+    title: "Waterloo Minor Hockey Association (Waterloo Wolves)",
+    description:
+      "Waterloo Minor Hockey Association provides recreational house league, select, and competitive rep hockey (Waterloo Wolves) for youth ages 4-18 across Waterloo arenas including RIM Park and Albert McCormick.",
+    category: "sports",
+    externalLink: "https://waterloominorhockey.com/",
+    submittedBy: "Waterloo Minor Hockey Association",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: null,
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
+  {
+    title: "Kitchener-Waterloo Skating Club (KWSC)",
+    description:
+      "Kitchener-Waterloo Skating Club offers learn-to-skate (CanSkate), figure skating (STARSkate), competitive skating, and synchronized skating teams for youth, headquartered at the Carolyn Fedy Skating Centre at RIM Park.",
+    category: "sports",
+    externalLink: "https://www.kwsc.org/",
+    submittedBy: "Kitchener-Waterloo Skating Club",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: null,
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
+  {
+    title: "Kitchener-Waterloo Track & Field Club",
+    description:
+      "KW Track & Field Club provides youth coaching and competitive training in cross country, sprints, middle/long distance, hurdles, and field events for elementary, middle school, and high school student athletes.",
+    category: "sports",
+    externalLink: "https://kwtrack.com/",
+    submittedBy: "KW Track & Field Club",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: null,
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
+  {
+    title: "Wildhawk Basketball Waterloo",
+    description:
+      "Wildhawk Basketball offers youth instructional developmental leagues, rep basketball teams, and skill development camps for boys and girls in middle school and high school throughout Waterloo Region.",
+    category: "sports",
+    externalLink: "https://wildhawk.ca/",
+    submittedBy: "Wildhawk Basketball",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: null,
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
+  {
+    title: "Kitchener-Waterloo Youth Basketball Association (KW Vipers)",
+    description:
+      "Kitchener-Waterloo Youth Basketball Association (KWYBA) provides recreational house leagues and competitive rep basketball (KW Vipers) for children and youth across Kitchener and Waterloo.",
+    category: "sports",
+    externalLink: "https://www.kwyba.com/",
+    submittedBy: "Kitchener-Waterloo Youth Basketball Association",
+    submitterEmail: "automation@levelupwaterloo.local",
+    deadline: null,
+    isApproved: true,
+    level: "both",
+    type: "in_person",
+    duration: "long",
+  },
 ];
 
 export function inferOpportunityTags(opportunity: InsertOpportunity): OpportunityTag[] {
@@ -487,7 +585,10 @@ export async function syncVerifiedOpportunities(): Promise<{
     if (existing[0]) {
       await db
         .update(opportunities)
-        .set(taggedOpportunity)
+        .set({
+          ...taggedOpportunity,
+          updatedAt: new Date(),
+        })
         .where(eq(opportunities.id, existing[0].id));
       updated++;
     } else {

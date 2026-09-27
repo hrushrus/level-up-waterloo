@@ -229,6 +229,18 @@ These sources provide the broadest coverage and should be checked first.
 | YW Kitchener-Waterloo IHCS Youth | Paid employment preparation, certifications and work experience | Women and gender-diverse people ages 15-30 facing employment barriers | https://ywkw.ca/integrated-holistic-career-services/ |
 | Waterloo Regional Health Network student placements | Paid co-op, unpaid placements, clinical internships and high-school placements | School or program coordination may be required | https://www.grhosp.on.ca/careers/student-opportunities |
 
+## Sports, Athletics and Community Clubs
+
+| Program or Club | Opportunity | Eligibility or timing | URL |
+| --- | --- | --- | --- |
+| Region of Waterloo Swim Club (ROW Swimming) | Competitive and developmental youth swim programming | Ages 7-18; year-round / seasonal intakes; WMRC & WLU pools | https://www.rowswimming.ca/ |
+| Waterloo Minor Soccer Club (Waterloo United) | Grassroots, recreational, and competitive youth soccer leagues, futsal, and skill academies | U3-U18; indoor and outdoor seasons | https://www.waterloounited.com/ |
+| Waterloo Minor Hockey Association (Waterloo Wolves) | Recreational house league, select, and competitive rep hockey | Ages 4-18; fall/winter and spring programs | https://waterloominorhockey.com/ |
+| Kitchener-Waterloo Skating Club (KWSC) | CanSkate, STARSkate, competitive figure skating, and synchronized skating | Children and youth; RIM Park | https://www.kwsc.org/ |
+| Kitchener-Waterloo Track & Field Club | Youth coaching and competition in sprints, distance, hurdles, and field events | Middle- and high-school students; year-round | https://kwtrack.com/ |
+| Wildhawk Basketball Waterloo | Youth instructional leagues, rep basketball teams, and skill development camps | Middle- and high-school students; seasonal | https://wildhawk.ca/ |
+| Kitchener-Waterloo Youth Basketball Association (KW Vipers) | Recreational house leagues and competitive rep basketball (KW Vipers) | Children and youth; seasonal | https://www.kwyba.com/ |
+
 ## Import Guidance
 
 For automated collection, use one record per specific posting rather than one record per

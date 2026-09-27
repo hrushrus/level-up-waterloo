@@ -504,6 +504,90 @@ export const DEFAULT_DISCOVERY_SOURCES: DiscoverySource[] = [
       "City of Waterloo Home Support Services Brokered Worker program. Youth ages 14+ earn $24-$27/hour helping local seniors and residents with winter snow removal (clearing driveways within 24 hours of snowfall) and seasonal property maintenance.",
     tags: ["career", "paid"],
   },
+  {
+    id: "row-swim-club",
+    name: "Region of Waterloo Swim Club (ROW Swimming)",
+    url: "https://www.rowswimming.ca/",
+    category: "sports",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "Region of Waterloo Swim Club (ROW) provides competitive and developmental youth swim programming in Waterloo Region for ages 7-18, training out of the Waterloo Memorial Recreation Complex (WMRC) and Wilfrid Laurier University.",
+    tags: ["sports", "competition"],
+  },
+  {
+    id: "waterloo-minor-soccer",
+    name: "Waterloo Minor Soccer Club (Waterloo United)",
+    url: "https://www.waterloounited.com/",
+    category: "sports",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "Waterloo United (WMSC) delivers grassroots, recreational, and competitive youth soccer leagues, skill development academies, and futsal programs for children and teens across Waterloo.",
+    tags: ["sports", "competition"],
+  },
+  {
+    id: "waterloo-minor-hockey",
+    name: "Waterloo Minor Hockey Association (Waterloo Wolves)",
+    url: "https://waterloominorhockey.com/",
+    category: "sports",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "Waterloo Minor Hockey Association provides recreational house league, select, and competitive rep hockey (Waterloo Wolves) for youth ages 4-18 across Waterloo arenas including RIM Park and Albert McCormick.",
+    tags: ["sports", "competition"],
+  },
+  {
+    id: "kw-skating-club",
+    name: "Kitchener-Waterloo Skating Club (KWSC)",
+    url: "https://www.kwsc.org/",
+    category: "sports",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "Kitchener-Waterloo Skating Club offers learn-to-skate (CanSkate), figure skating (STARSkate), competitive skating, and synchronized skating teams for youth, headquartered at the Carolyn Fedy Skating Centre at RIM Park.",
+    tags: ["sports", "workshop", "competition"],
+  },
+  {
+    id: "kw-track-and-field",
+    name: "Kitchener-Waterloo Track & Field Club",
+    url: "https://kwtrack.com/",
+    category: "sports",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "KW Track & Field Club provides youth coaching and competitive training in cross country, sprints, middle/long distance, hurdles, and field events for elementary, middle school, and high school student athletes.",
+    tags: ["sports", "competition"],
+  },
+  {
+    id: "waterloo-wildhawks-basketball",
+    name: "Wildhawk Basketball Waterloo",
+    url: "https://wildhawk.ca/",
+    category: "sports",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "Wildhawk Basketball offers youth instructional developmental leagues, rep basketball teams, and skill development camps for boys and girls in middle school and high school throughout Waterloo Region.",
+    tags: ["sports", "competition"],
+  },
+  {
+    id: "kw-youth-basketball",
+    name: "Kitchener-Waterloo Youth Basketball Association (KW Vipers)",
+    url: "https://www.kwyba.com/",
+    category: "sports",
+    level: "both",
+    type: "in_person",
+    duration: "long",
+    fallbackDescription:
+      "Kitchener-Waterloo Youth Basketball Association (KWYBA) provides recreational house leagues and competitive rep basketball (KW Vipers) for children and youth across Kitchener and Waterloo.",
+    tags: ["sports", "competition"],
+  },
 ];
 
 function normalizeWhitespace(value: string): string {
@@ -747,6 +831,7 @@ async function upsertDiscoveredOpportunity(candidate: DiscoveryCandidate) {
         type: values.type,
         duration: values.duration,
         tags: values.tags,
+        updatedAt: new Date(),
       })
       .where(eq(opportunities.id, existingId));
     return "updated" as const;
