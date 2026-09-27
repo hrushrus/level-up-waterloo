@@ -195,7 +195,6 @@ These sources provide the broadest coverage and should be checked first.
 | Waterloo-Wellington FIRST | FIRST LEGO League, FIRST Tech Challenge and FIRST Robotics Competition | Programs span roughly ages 4-18 | https://wwfirst.ca/ |
 | University of Waterloo CEMC contests | Gauss, Pascal, Cayley, Fermat, Fryer, Galois, Hypatia, Euclid and Canadian Computing Competition | Registration is normally coordinated through schools | https://cemc.uwaterloo.ca/contests |
 | Canadian Senior & Intermediate Mathematics Contests (CSMC & CIMC) | Full-solution fall mathematics contests for secondary students | Grades 9-10 & 11-12; school order deadline October 22 | https://cemc.uwaterloo.ca/contests/csimc |
-| Beaver Computing Challenge (BCC) | Computational thinking and logic problem-solving challenge | Grades 7-10; school registration deadline October 26 | https://cemc.uwaterloo.ca/contests/bcc |
 | University of Waterloo science contests | Sir Isaac Newton Physics Contest and Chem 13 News Exam | High-school students; school-coordinated | https://uwaterloo.ca/science/outreach/contests |
 | GeoX Summer Camp | Residential earth and environmental science camp | Students entering Grades 11-12; August 9-15, 2026 | https://uwaterloo.ca/science/outreach/geox-summer-camp |
 | Quantum School for Young Students | Quantum information enrichment and optional local lab day | High-school students; August 4-13, 2026 online, August 17 local lab day | https://uwaterloo.ca/institute-for-quantum-computing/outreach/qsys |

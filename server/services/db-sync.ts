@@ -417,20 +417,6 @@ export const VERIFIED_OPPORTUNITIES: InsertOpportunity[] = [
     type: "in_person",
     duration: "short",
   },
-  {
-    title: "Beaver Computing Challenge (BCC)",
-    description:
-      "Interactive computational thinking and problem-solving competition for middle school and high school students (Grades 7-10), organized by the University of Waterloo. School registration deadline is October 26, 2026.",
-    category: "stem_competition",
-    externalLink: "https://cemc.uwaterloo.ca/contests/bcc",
-    submittedBy: "University of Waterloo CEMC",
-    submitterEmail: "automation@levelupwaterloo.local",
-    deadline: new Date("2026-10-26T23:59:59-04:00"),
-    isApproved: true,
-    level: "both",
-    type: "online",
-    duration: "short",
-  },
 ];
 
 export function inferOpportunityTags(opportunity: InsertOpportunity): OpportunityTag[] {
@@ -652,6 +638,11 @@ export async function syncVerifiedOpportunities(): Promise<{
       inserted++;
     }
   }
+
+  // Remove duplicate/covered opportunities
+  await db
+    .delete(opportunities)
+    .where(eq(opportunities.title, "Beaver Computing Challenge (BCC)"));
 
   return {
     checked: VERIFIED_OPPORTUNITIES.length,
